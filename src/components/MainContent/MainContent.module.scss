@@ -1,0 +1,13 @@
+@use '@/styles/variables.scss' as *;
+
+.main {
+  margin-left: $sidebar-width;
+  margin-top: calc(var(--titlebar-offset) + #{$topbar-height});
+  padding: $gutter;
+  height: calc(100vh - var(--titlebar-offset) - #{$topbar-height});
+  overflow-y: auto;
+}
+
+.container {
+  max-width: 1000px;
+}

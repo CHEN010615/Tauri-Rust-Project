@@ -1,26 +1,184 @@
-@use './variables';
+@use './variables.scss' as *;
 
+// 全局样式重置和基础样式
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
 }
 
 html,
-body,
-#root {
+body {
+  font-family: $font-family;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  color: $text-primary;
+  background-color: $background-color;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
   width: 100%;
   height: 100%;
-  margin: 0;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
-body {
-  min-width: 320px;
-  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background: #f8fafc;
+html {
+  --titlebar-offset: #{$titlebar-height};
 }
 
-button,
+html.platform-macos,
+html.window-fullscreen {
+  --titlebar-offset: 0px;
+}
+
+#root {
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+// 链接样式
+a {
+  color: $primary-color;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $primary-light;
+  }
+}
+
+// 按钮基础样式
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+// 输入框基础样式
 input,
 textarea,
 select {
-  font: inherit;
+  font-family: inherit;
+  font-size: inherit;
 }
+
+// 代码块
+code {
+  font-family: $font-family-mono;
+  background-color: $surface-container-high;
+  padding: $spacing-xs $spacing-sm;
+  border-radius: $border-radius-sm;
+  font-size: $font-size-sm;
+}
+
+// 滚动条样式
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: $outline-variant;
+  border-radius: 10px;
+
+  &:hover {
+    background: $outline-color;
+  }
+}
+
+// 文本选择样式
+::selection {
+  background-color: $primary-container;
+  color: $on-primary-container;
+}
+
+// 玻璃面板效果
+.glass-panel {
+  background: $glass-bg;
+  backdrop-filter: blur($glass-blur);
+  border: 1px solid $glass-border;
+}
+
+// 扫描动画条
+.scanning-bar {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  animation: scan 3s infinite linear;
+}
+
+@keyframes scan {
+  100% {
+    left: 200%;
+  }
+}
+
+// 卡片悬浮发光
+.pal-card-glow:hover {
+  box-shadow: $shadow-card-glow;
+}
+
+// 辅助类
+.text-primary {
+  color: $text-primary;
+}
+
+.text-secondary {
+  color: $text-secondary;
+}
+
+.text-disabled {
+  color: $text-disabled;
+}
+
+.bg-primary {
+  background-color: $primary-color;
+}
+
+.bg-secondary {
+  background-color: $secondary-color;
+}
+
+.bg-background {
+  background-color: $background-color;
+}
+
+.bg-paper {
+  background-color: $background-paper;
+}
+
+// 间距辅助类
+.m-xs { margin: $spacing-xs; }
+.m-sm { margin: $spacing-sm; }
+.m-md { margin: $spacing-md; }
+.m-lg { margin: $spacing-lg; }
+.m-xl { margin: $spacing-xl; }
+
+.p-xs { padding: $spacing-xs; }
+.p-sm { padding: $spacing-sm; }
+.p-md { padding: $spacing-md; }
+.p-lg { padding: $spacing-lg; }
+.p-xl { padding: $spacing-xl; }
+
+// 圆角辅助类
+.rounded-sm { border-radius: $border-radius-sm; }
+.rounded-md { border-radius: $border-radius-md; }
+.rounded-lg { border-radius: $border-radius-lg; }
+.rounded-xl { border-radius: $border-radius-xl; }
+.rounded-full { border-radius: $border-radius-full; }
+
+// 阴影辅助类
+.shadow-sm { box-shadow: $shadow-sm; }
+.shadow-md { box-shadow: $shadow-md; }
+.shadow-lg { box-shadow: $shadow-lg; }
+.shadow-xl { box-shadow: $shadow-xl; }

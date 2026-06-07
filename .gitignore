@@ -10,6 +10,21 @@ build/
 src-tauri/target/
 src-tauri/gen/
 
+# TypeScript build artifacts
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
+
+# Tool caches and reports
+.vite/
+.vite-temp/
+.turbo/
+.parcel-cache/
+coverage/
+.nyc_output/
+playwright-report/
+test-results/
+
 # Logs and diagnostics
 *.log
 npm-debug.log*

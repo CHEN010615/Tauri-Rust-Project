@@ -1,0 +1,538 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: $spacing-md;
+  height: calc(100vh - #{$topbar-height} - #{$container-padding * 2} - 20px);
+  min-height: 0;
+}
+
+.layerPanel {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  padding: $spacing-md;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-lg;
+  background: rgba($surface-container-low, 0.92);
+  overflow: hidden;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin: 0;
+  color: $on-surface;
+  font-family: $font-family-display;
+  font-size: $font-size-xl;
+  font-weight: 600;
+}
+
+.countBadge {
+  padding: 4px 10px;
+  border: 1px solid rgba($primary-color, 0.28);
+  border-radius: $border-radius-full;
+  background: rgba($primary-color, 0.12);
+  color: $primary-color;
+  font-size: $font-size-xs;
+  font-weight: 600;
+}
+
+.searchBox {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  height: 38px;
+  padding: 0 $spacing-sm;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-md;
+  background: rgba($surface-container-high, 0.72);
+  color: $on-surface-variant;
+}
+
+.searchInput {
+  min-width: 0;
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: $on-surface;
+  font-size: $font-size-sm;
+
+  &::placeholder {
+    color: $on-surface-variant;
+  }
+}
+
+.clearSearch {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: $border-radius-sm;
+  background: transparent;
+  color: $on-surface-variant;
+  cursor: pointer;
+
+  &:hover {
+    color: $on-surface;
+    background: rgba($primary-color, 0.12);
+  }
+}
+
+.batchActions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: $spacing-sm;
+}
+
+.batchBtn {
+  height: 32px;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-md;
+  background: rgba($surface-container-high, 0.72);
+  color: $on-surface;
+  cursor: pointer;
+  font-size: $font-size-xs;
+
+  &:hover {
+    border-color: rgba($primary-color, 0.4);
+    color: $primary-color;
+  }
+}
+
+.groupsList {
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+
+  &::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border-radius: $border-radius-full;
+    background: $border-color;
+  }
+}
+
+.group {
+  border-bottom: 1px solid rgba($border-color, 0.45);
+  padding: 4px 0;
+}
+
+.groupHeader {
+  width: 100%;
+  min-height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-sm;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: $on-surface;
+  cursor: pointer;
+}
+
+.groupTitle {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.groupIcon {
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.groupCount {
+  color: $on-surface-variant;
+  font-size: $font-size-xs;
+  font-weight: 500;
+}
+
+.groupActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  color: $primary-color;
+  font-size: $font-size-xs;
+
+  span:hover {
+    text-decoration: underline;
+  }
+}
+
+.typeList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 0 8px 28px;
+}
+
+.typeItem {
+  height: 30px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: $border-radius-sm;
+  color: $on-surface-variant;
+  cursor: pointer;
+  font-size: $font-size-sm;
+
+  &:hover {
+    color: $on-surface;
+    background: rgba($primary-color, 0.08);
+  }
+
+  input {
+    width: 14px;
+    height: 14px;
+    accent-color: $primary-color;
+  }
+}
+
+.typeIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.mapArea {
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-lg;
+  background: #07101d;
+}
+
+.mapViewport {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.mapViewportPanning {
+  cursor: grabbing;
+}
+
+.mapSurface {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  contain: layout paint style;
+}
+
+.tileLayer {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: #07101d;
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.mapTile {
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  pointer-events: none;
+  user-select: none;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+}
+
+.marker {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  padding: 0;
+  border-radius: 50%;
+  background: rgba(7, 16, 29, 0.48);
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+  filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.72));
+  z-index: 1;
+
+  img {
+    width: 88%;
+    height: 88%;
+    object-fit: contain;
+    pointer-events: none;
+  }
+
+  &:hover,
+  &.markerSelected {
+    z-index: 2;
+    outline: 2px solid $primary-color;
+    background: rgba($primary-color, 0.16);
+  }
+
+  &:hover .markerTooltip {
+    opacity: 1;
+    transform: translate(-50%, -6px);
+  }
+}
+
+.markerTooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  min-width: 96px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 9px;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-sm;
+  background: rgba($surface-container-high, 0.96);
+  color: $on-surface;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 0);
+  transition: opacity $transition-fast, transform $transition-fast;
+  white-space: nowrap;
+
+  strong {
+    font-size: $font-size-xs;
+  }
+
+  small {
+    color: $on-surface-variant;
+    font-size: 11px;
+  }
+}
+
+.zoomControls {
+  position: absolute;
+  right: $spacing-md;
+  bottom: $spacing-md;
+  z-index: 4;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-md;
+  background: rgba($surface-container-high, 0.92);
+  backdrop-filter: blur($glass-blur);
+
+  button {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 0;
+    border-radius: $border-radius-sm;
+    background: transparent;
+    color: $on-surface;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($primary-color, 0.16);
+      color: $primary-color;
+    }
+  }
+
+  span {
+    min-width: 42px;
+    color: $on-surface-variant;
+    font-family: $font-family-mono;
+    font-size: $font-size-xs;
+    text-align: center;
+  }
+}
+
+.detailPanel {
+  position: absolute;
+  right: $spacing-md;
+  top: $spacing-md;
+  width: 300px;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-lg;
+  background: rgba($surface-container-high, 0.94);
+  backdrop-filter: blur($glass-blur);
+  z-index: 5;
+  overflow: hidden;
+}
+
+.detailInner {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+
+  p {
+    margin: 0;
+    color: $on-surface-variant;
+    line-height: 1.5;
+    font-size: $font-size-sm;
+  }
+
+  small {
+    color: $on-surface-variant;
+    font-family: $font-family-mono;
+    font-size: $font-size-xs;
+  }
+}
+
+.detailClose {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: $border-radius-sm;
+  background: transparent;
+  color: $on-surface-variant;
+  cursor: pointer;
+
+  &:hover {
+    color: $on-surface;
+    background: rgba($primary-color, 0.12);
+  }
+}
+
+.detailHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 24px;
+
+  img {
+    width: 42px;
+    height: 42px;
+    object-fit: contain;
+  }
+
+  h3 {
+    margin: 0;
+    color: $on-surface;
+    font-size: $font-size-lg;
+  }
+
+  span {
+    color: $on-surface-variant;
+    font-size: $font-size-xs;
+  }
+}
+
+.detailMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  span {
+    padding: 3px 8px;
+    border-radius: $border-radius-full;
+    background: rgba($primary-color, 0.12);
+    color: $primary-color;
+    font-size: $font-size-xs;
+    font-weight: 600;
+  }
+}
+
+.searchResults {
+  position: absolute;
+  left: $spacing-md;
+  top: $spacing-md;
+  width: 280px;
+  max-height: calc(100% - #{$spacing-md * 2});
+  display: flex;
+  flex-direction: column;
+  border: 1px solid $glass-border;
+  border-radius: $border-radius-lg;
+  background: rgba($surface-container-high, 0.94);
+  backdrop-filter: blur($glass-blur);
+  z-index: 5;
+  overflow: hidden;
+}
+
+.searchResultsHeader {
+  padding: 10px $spacing-md;
+  border-bottom: 1px solid $glass-border;
+  color: $on-surface-variant;
+  font-size: $font-size-xs;
+}
+
+.searchResultsList {
+  overflow-y: auto;
+}
+
+.searchResult {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 0;
+  padding: 9px $spacing-md;
+  background: transparent;
+  color: $on-surface;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background: rgba($primary-color, 0.1);
+  }
+
+  img {
+    width: 28px;
+    height: 28px;
+    object-fit: contain;
+  }
+
+  span {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+
+  strong {
+    font-size: $font-size-sm;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: $on-surface-variant;
+    font-size: $font-size-xs;
+  }
+}

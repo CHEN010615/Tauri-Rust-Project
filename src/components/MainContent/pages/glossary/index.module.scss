@@ -1,0 +1,533 @@
+@use '@/styles/variables.scss' as *;
+
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-lg;
+  height: 100%;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  padding-left: 12px;
+  border-left: 3px solid $secondary-color;
+  align-items: center;
+}
+
+.title {
+  font-family: $font-family-display;
+  font-size: $font-size-2xl;
+  font-weight: 700;
+  color: $secondary-color;
+  margin: 0;
+}
+
+.desc {
+  color: $on-surface-variant;
+  font-size: $font-size-base;
+  margin-top: $spacing-sm;
+}
+
+.headerActions {
+  display: flex;
+  gap: $spacing-sm;
+}
+
+.actionBtn {
+  display: flex;
+  align-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  border: 1px solid $glass-border;
+  background: $glass-bg;
+  backdrop-filter: blur($glass-blur);
+  color: $on-surface-variant;
+  cursor: pointer;
+  transition: all $transition-fast;
+  font-size: $font-size-sm;
+
+  &:hover {
+    border-color: rgba($primary-color, 0.3);
+    color: $on-surface;
+  }
+}
+
+.filterTabs {
+  display: flex;
+  gap: $spacing-xs;
+  padding: $spacing-xs;
+  background-color: $surface-container-low;
+  border-radius: $border-radius-lg;
+  overflow-x: auto;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.filterTab {
+  padding: $spacing-sm $spacing-md;
+  border-radius: $border-radius-md;
+  border: none;
+  background: transparent;
+  color: $on-surface-variant;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all $transition-fast;
+  font-size: $font-size-sm;
+  font-weight: 500;
+
+  &.active {
+    background: linear-gradient(135deg, rgba($primary-color, 0.2), rgba($primary-color, 0.1));
+    color: $primary-color;
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) {
+    background-color: $surface-container-high;
+    color: $on-surface;
+  }
+}
+
+.content {
+  display: grid;
+  grid-template-columns: 60% 40%;
+  gap: $spacing-lg;
+  flex: 1;
+  min-height: 0;
+}
+
+.skillList {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  overflow-y: auto;
+  padding-right: $spacing-xs;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $surface-container-highest;
+    border-radius: $border-radius-full;
+  }
+}
+
+.skillCard {
+  border-radius: $border-radius-lg;
+  padding: $spacing-md;
+  cursor: pointer;
+  transition: all $transition-base;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at center, rgba($primary-color, 0) 0%, rgba($primary-color, 0) 100%);
+    transition: all $transition-base;
+    pointer-events: none;
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-card-glow;
+
+    &::before {
+      background: radial-gradient(
+        circle at center,
+        rgba($primary-color, 0.05) 0%,
+        rgba($primary-color, 0) 70%
+      );
+    }
+  }
+
+  &.selected {
+    border-color: rgba($primary-color, 0.5);
+    background: linear-gradient(135deg, rgba($primary-color, 0.08), rgba($primary-color, 0.02));
+  }
+}
+
+.cardMain {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+}
+
+.cardLeft {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex: 1;
+  min-width: 0;
+}
+
+.skillIcon {
+  width: 48px;
+  height: 48px;
+  border-radius: $border-radius-md;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all $transition-fast;
+}
+
+.skillCard:hover .skillIcon {
+  transform: scale(1.05);
+}
+
+.skillInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.skillNameRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-xs;
+  flex-wrap: wrap;
+}
+
+.skillName {
+  font-family: $font-family-display;
+  font-size: $font-size-xl;
+  font-weight: 600;
+  color: #fff;
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+}
+
+.skillNameEn {
+  color: $on-surface-variant;
+  font-size: $font-size-sm;
+  font-weight: 400;
+  font-family: $font-family-mono;
+}
+
+.tierBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.tier1 {
+  color: #9e9e9e;
+  background-color: rgba(158, 158, 158, 0.15);
+}
+
+.tier2 {
+  color: $primary-color;
+  background-color: rgba($primary-color, 0.15);
+}
+
+.tier3 {
+  color: $secondary-color;
+  background-color: rgba($secondary-color, 0.15);
+}
+
+.tier4 {
+  color: #ffd700;
+  background-color: rgba(255, 215, 0, 0.15);
+  animation: tierGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes tierGlow {
+  from {
+    box-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+  }
+  to {
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.skillEffect {
+  color: $on-surface-variant;
+  font-size: $font-size-base;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.cardRight {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  flex-shrink: 0;
+}
+
+.typeTag {
+  padding: 4px 12px;
+  border-radius: $border-radius-full;
+  font-size: $font-size-xs;
+  font-weight: 600;
+  border: 1px solid;
+  white-space: nowrap;
+}
+
+.detailLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  border-radius: $border-radius-md;
+  border: 1px solid rgba($primary-color, 0.3);
+  background: transparent;
+  color: $primary-color;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  transition: all $transition-fast;
+
+  &:hover {
+    background: rgba($primary-color, 0.1);
+    border-color: $primary-color;
+  }
+}
+
+.loadMore {
+  width: 100%;
+  padding: $spacing-md;
+  border: 1px dashed $border-light;
+  border-radius: $border-radius-lg;
+  background: transparent;
+  color: $text-secondary;
+  cursor: pointer;
+  font-size: $font-size-sm;
+  transition: all $transition-fast;
+  margin-top: $spacing-sm;
+
+  &:hover {
+    border-color: $primary-color;
+    color: $primary-color;
+    background: rgba($primary-color, 0.05);
+  }
+}
+
+.detailPanel {
+  position: sticky;
+  top: 0;
+  height: fit-content;
+  max-height: calc(100vh - 200px);
+  overflow-y: auto;
+  border-radius: $border-radius-xl;
+  padding: $spacing-lg;
+  border: 1px solid rgba($primary-color, 0.25);
+  background: linear-gradient(180deg, rgba($surface-container, 0.95), rgba($surface-container-low, 0.98));
+  box-shadow: $shadow-panel;
+
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: $surface-container-highest;
+    border-radius: $border-radius-full;
+  }
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  gap: $spacing-md;
+  margin-bottom: $spacing-lg;
+  padding-bottom: $spacing-md;
+  border-bottom: 1px solid $border-light;
+}
+
+.panelIcon {
+  width: 56px;
+  height: 56px;
+  border-radius: $border-radius-lg;
+  border: 2px solid;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.panelTitle {
+  font-family: $font-family-display;
+  font-size: $font-size-xl;
+  font-weight: 700;
+  color: #fff;
+  margin: 0;
+  display: inline-flex;
+  align-items: baseline;
+  gap: $spacing-sm;
+}
+
+.panelTitleSub {
+  color: $on-surface-variant;
+  font-size: $font-size-sm;
+  font-weight: 400;
+}
+
+.panelSection {
+  margin-bottom: $spacing-lg;
+}
+
+.sectionTitle {
+  font-size: $font-size-sm;
+  font-weight: 600;
+  color: $primary-color;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 $spacing-sm 0;
+}
+
+.panelDesc {
+  color: $on-surface-variant;
+  font-size: $font-size-base;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.acquisitionList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-sm;
+}
+
+.acquisitionItem {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: $on-surface;
+  font-size: $font-size-base;
+  padding: $spacing-sm;
+  background-color: $surface-container-low;
+  border-radius: $border-radius-md;
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: $surface-container-high;
+  }
+}
+
+.inheritanceBar {
+  margin-top: $spacing-sm;
+}
+
+.inheritanceLabel {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: $spacing-xs;
+  font-size: $font-size-sm;
+  color: $on-surface-variant;
+}
+
+.progressBar {
+  position: relative;
+  height: 20px;
+  background-color: $surface-container-highest;
+  border-radius: $border-radius-full;
+  overflow: hidden;
+}
+
+.progressFill {
+  height: 100%;
+  background: linear-gradient(90deg, $primary-color, $secondary-color);
+  border-radius: $border-radius-full;
+  transition: width 0.8s ease;
+  position: relative;
+  z-index: 1;
+}
+
+.progressScan {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.4),
+    transparent
+  );
+  animation: scan 2s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes scan {
+  0% {
+    left: -50%;
+  }
+  100% {
+    left: 150%;
+  }
+}
+
+.breedButton {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-sm;
+  padding: $spacing-md;
+  border-radius: $border-radius-lg;
+  border: 1px solid rgba($primary-color, 0.4);
+  background: linear-gradient(135deg, rgba($primary-color, 0.15), rgba($primary-color, 0.08));
+  color: $primary-color;
+  cursor: pointer;
+  font-size: $font-size-base;
+  font-weight: 600;
+  transition: all $transition-fast;
+  margin-bottom: $spacing-lg;
+
+  &:hover {
+    background: linear-gradient(135deg, rgba($primary-color, 0.25), rgba($primary-color, 0.15));
+    border-color: $primary-color;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba($primary-color, 0.2);
+  }
+}
+
+.comboTags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.comboTag {
+  padding: 6px 14px;
+  border-radius: $border-radius-full;
+  background-color: rgba($secondary-color, 0.15);
+  color: $secondary-color;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  border: 1px solid rgba($secondary-color, 0.3);
+  transition: all $transition-fast;
+
+  &:hover {
+    background-color: rgba($secondary-color, 0.25);
+    transform: translateY(-1px);
+  }
+}

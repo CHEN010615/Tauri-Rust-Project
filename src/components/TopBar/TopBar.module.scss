@@ -1,0 +1,172 @@
+@use '@/styles/variables.scss' as *;
+
+.topbar {
+  height: $topbar-height;
+  position: fixed;
+  top: var(--titlebar-offset);
+  right: 0;
+  left: $sidebar-width;
+  z-index: $z-index-topbar;
+  background-color: rgba($surface-color, 0.8);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba($outline-variant, 0.1);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 $container-padding;
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: $spacing-lg;
+  flex: 1;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: $border-radius-full;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.searchWrap {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+}
+
+.searchIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: $outline-color;
+  font-size: 20px;
+  pointer-events: none;
+}
+
+.searchInput {
+  width: 100%;
+  background-color: $surface-container-high;
+  border: 1px solid $outline-variant;
+  border-radius: $border-radius-full;
+  padding: 6px 16px 6px 40px;
+  font-family: $font-family-label;
+  font-size: $font-size-md;
+  color: $on-surface;
+  outline: none;
+  transition: all $transition-fast;
+
+  &::placeholder {
+    color: $on-surface-variant;
+  }
+
+  &:focus {
+    border-color: $primary-color;
+    box-shadow: 0 0 0 2px rgba($primary-color, 0.3);
+  }
+}
+
+.tabs {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.tab {
+  font-family: $font-family-label;
+  font-size: $font-size-sm;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  color: $on-surface-variant;
+  text-decoration: none;
+  padding-bottom: 2px;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: $on-surface;
+  }
+}
+
+.tabActive {
+  color: $primary-color;
+  border-bottom: 2px solid $primary-color;
+  padding-bottom: 0;
+
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-left: $spacing-md;
+}
+
+.iconBtn {
+  padding: 6px;
+  color: $on-surface-variant;
+  transition: color $transition-fast;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  cursor: pointer;
+
+  &:hover {
+    color: $primary-color;
+  }
+}
+
+.langBtn {
+  min-width: 44px;
+  height: 32px;
+  padding: 0 10px;
+  color: $on-surface;
+  background-color: rgba($surface-container-high, 0.9);
+  border: 1px solid rgba($outline-variant, 0.8);
+  border-radius: $border-radius-full;
+  font-family: $font-family-label;
+  font-size: $font-size-xs;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    color: $primary-color;
+    border-color: rgba($primary-color, 0.65);
+  }
+}
+
+.startBtn {
+  background-color: $primary-container;
+  color: $on-primary-container;
+  font-family: $font-family-label;
+  font-size: $font-size-md;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  padding: 6px 16px;
+  border-radius: $border-radius-full;
+  border: none;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    filter: brightness(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}

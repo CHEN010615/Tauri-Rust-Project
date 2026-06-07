@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "PluginCore",
+  "productName": "PAL-HUB",
   "version": "0.1.0",
   "identifier": "com.chen.plugin-core.tauri",
   "build": {
@@ -13,7 +13,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "PluginCore",
+        "title": "PAL-HUB",
         "width": 1280,
         "height": 850,
         "minWidth": 1180,

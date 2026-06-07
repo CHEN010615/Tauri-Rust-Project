@@ -1,8 +1,157 @@
-:root {
-  color: #111827;
-  background: #f8fafc;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
+// ==================== 颜色变量 ====================
+
+// 主色
+$primary-color: #78d1ff;
+$primary-light: #88d5ff;
+$primary-dark: #3abcf4;
+$primary-container: #3abcf4;
+$primary-fixed: #c3e8ff;
+$primary-fixed-dim: #78d1ff;
+$on-primary: #003549;
+$on-primary-fixed: #001e2c;
+$on-primary-fixed-variant: #004c68;
+$on-primary-container: #004963;
+$inverse-primary: #006689;
+
+// 次色
+$secondary-color: #ffde54;
+$secondary-light: #ffe16a;
+$secondary-dark: #e5c100;
+$secondary-container: #e5c100;
+$secondary-fixed: #ffe16a;
+$secondary-fixed-dim: #e8c404;
+$on-secondary: #3a3000;
+$on-secondary-fixed: #221b00;
+$on-secondary-fixed-variant: #544600;
+$on-secondary-container: #5f5000;
+
+// 第三色
+$tertiary-color: #ffb9c1;
+$tertiary-container: #ff8f9f;
+$tertiary-fixed: #ffd9dd;
+$tertiary-fixed-dim: #ffb2bb;
+$on-tertiary: #670022;
+$on-tertiary-fixed: #400012;
+$on-tertiary-fixed-variant: #910033;
+$on-tertiary-container: #8a0030;
+
+// 错误色
+$error-color: #ffb4ab;
+$error-container: #93000a;
+$on-error: #690005;
+$on-error-container: #ffdad6;
+
+// ==================== 表面/背景色 ====================
+$background-color: #081425;
+$background-paper: #152031;
+$background-dark: #040e1f;
+$background-light: #fafafa;
+
+$surface-color: #081425;
+$surface-dim: #081425;
+$surface-bright: #2f3a4c;
+$surface-container: #152031;
+$surface-container-low: #111c2d;
+$surface-container-lowest: #040e1f;
+$surface-container-high: #1f2a3c;
+$surface-container-highest: #2a3548;
+$surface-tint: #78d1ff;
+$surface-variant: #2a3548;
+
+$on-surface: #d8e3fb;
+$on-surface-variant: #bdc8d0;
+$on-background: #d8e3fb;
+$inverse-surface: #d8e3fb;
+$inverse-on-surface: #263143;
+
+// ==================== 文字颜色 ====================
+$text-primary: #d8e3fb;
+$text-secondary: #bdc8d0;
+$text-disabled: #87929a;
+$text-inverse: #081425;
+
+// ==================== 边框颜色 ====================
+$border-color: #3e484f;
+$border-light: rgba(255, 255, 255, 0.1);
+$border-dark: #87929a;
+$outline-color: #87929a;
+$outline-variant: #3e484f;
+
+// ==================== 功能色 ====================
+$success-color: #4caf50;
+$warning-color: #ff9800;
+$info-color: #2196f3;
+
+// ==================== 间距 ====================
+$spacing-xs: 4px;
+$spacing-sm: 8px;
+$spacing-md: 16px;
+$spacing-lg: 24px;
+$spacing-xl: 32px;
+
+// 布局间距
+$sidebar-width: 240px;
+$topbar-height: 64px;
+$titlebar-height: 36px;
+$container-padding: 24px;
+$card-gap: 12px;
+$gutter: 16px;
+
+// ==================== 字体 ====================
+$font-family: 'Hanken Grotesk', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+$font-family-mono: 'Geist', 'Fira Code', 'Source Code Pro', 'Consolas', monospace;
+$font-family-display: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+$font-family-label: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+
+$font-size-xs: 0.8125rem;    // 13px
+$font-size-sm: 0.875rem;     // 14px
+$font-size-base: 1rem;       // 16px
+$font-size-md: 0.9375rem;    // 15px
+$font-size-lg: 1.125rem;     // 18px
+$font-size-xl: 1.25rem;      // 20px
+$font-size-2xl: 1.375rem;    // 22px
+$font-size-3xl: 2rem;        // 32px
+$font-size-4xl: 2.25rem;     // 36px
+$font-size-5xl: 2.75rem;     // 44px
+
+// ==================== 圆角 ====================
+$border-radius-sm: 0.25rem;
+$border-radius-md: 0.5rem;
+$border-radius-lg: 0.75rem;
+$border-radius-xl: 1.25rem;
+$border-radius-full: 9999px;
+
+// ==================== 阴影 ====================
+$shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+$shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+$shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+$shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-panel: -20px 0 40px rgba(0, 0, 0, 0.5);
+$shadow-card-glow: 0 0 20px rgba(136, 213, 255, 0.2);
+
+// ==================== 过渡 ====================
+$transition-fast: 150ms ease;
+$transition-base: 300ms ease;
+$transition-slow: 500ms ease;
+
+// ==================== 断点 ====================
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+
+// ==================== Z-index ====================
+$z-index-sidebar: 60;
+$z-index-topbar: 50;
+$z-index-panel: 100;
+$z-index-dropdown: 1000;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;
+$z-index-toast: 1080;
+
+// ==================== 玻璃效果 ====================
+$glass-bg: rgba(21, 32, 49, 0.7);
+$glass-border: rgba(255, 255, 255, 0.1);
+$glass-blur: 16px;
