@@ -76,6 +76,12 @@ type RuntimeInfo = {
   webview: string
 }
 
+type DashboardInfo = {
+  os: OSInfo
+  runtime: RuntimeInfo
+  performance: PerformanceInfo
+}
+
 type MetricHistory = {
   cpu: number[]
   memory: number[]
@@ -132,12 +138,25 @@ const parsePercent = (value?: string) => {
   return Number.isFinite(parsed) ? clampPercent(parsed) : 0
 }
 
+const rotateMetricHistory = (values: number[], nextValue: number) => [...values.slice(1), nextValue]
 const appendPercentHistory = (values: number[], nextValue: number) => [...values.slice(-7), clampPercent(nextValue)]
 const appendMetricHistory = (values: number[], nextValue: number) => [...values.slice(-7), Math.max(0, nextValue)]
 
 const EChart = ({ option, height }: { option: EChartsCoreOption; height: number | string }) => {
   const chartRef = useRef<HTMLDivElement | null>(null)
   const chartInstanceRef = useRef<ReturnType<typeof echarts.init> | null>(null)
+  const resizeFrameRef = useRef<number | null>(null)
+
+  const scheduleResize = () => {
+    if (resizeFrameRef.current !== null) {
+      window.cancelAnimationFrame(resizeFrameRef.current)
+    }
+
+    resizeFrameRef.current = window.requestAnimationFrame(() => {
+      resizeFrameRef.current = null
+      chartInstanceRef.current?.resize()
+    })
+  }
 
   useEffect(() => {
     if (!chartRef.current) {
@@ -145,21 +164,30 @@ const EChart = ({ option, height }: { option: EChartsCoreOption; height: number 
     }
 
     chartInstanceRef.current = echarts.getInstanceByDom(chartRef.current) ?? echarts.init(chartRef.current, undefined, { renderer: 'canvas' })
-    const resize = () => chartInstanceRef.current?.resize()
-    window.addEventListener('resize', resize)
+    const resizeObserver = new ResizeObserver(scheduleResize)
+
+    resizeObserver.observe(chartRef.current)
+    window.addEventListener('resize', scheduleResize)
+    scheduleResize()
 
     return () => {
-      window.removeEventListener('resize', resize)
+      if (resizeFrameRef.current !== null) {
+        window.cancelAnimationFrame(resizeFrameRef.current)
+        resizeFrameRef.current = null
+      }
+
+      resizeObserver.disconnect()
+      window.removeEventListener('resize', scheduleResize)
       chartInstanceRef.current?.dispose()
       chartInstanceRef.current = null
     }
   }, [])
 
   useEffect(() => {
-    chartInstanceRef.current?.setOption(option, true)
+    chartInstanceRef.current?.setOption(option, { notMerge: false, lazyUpdate: true })
   }, [option])
 
-  return <Box ref={chartRef} sx={{ width: '100%', height }} />
+  return <Box ref={chartRef} sx={{ width: '100%', minWidth: 0, height, overflow: 'hidden' }} />
 }
 
 const donutOption = (value: number, color = '#0065CC'): EChartsCoreOption => ({
@@ -189,14 +217,6 @@ const lineOption = (values: number[], color = '#6AA0E0'): EChartsCoreOption => (
   series: [{ type: 'line', data: values, showSymbol: false, smooth: false, lineStyle: { width: 4, color, cap: 'round', join: 'round' }, emphasis: { disabled: true } }]
 })
 
-const barOption = (values: number[], color: string): EChartsCoreOption => ({
-  animationDuration: 450,
-  grid: { top: 0, right: 0, bottom: 0, left: 0 },
-  xAxis: { type: 'category', show: false, data: values.map((_, index) => index) },
-  yAxis: { type: 'value', show: false, min: 0, max: 100 },
-  series: [{ type: 'bar', data: values, barWidth: '70%', itemStyle: { color, borderRadius: [4, 4, 0, 0] }, emphasis: { disabled: true } }]
-})
-
 const progressOption = (value: number, color = '#0065CC'): EChartsCoreOption => ({
   animationDuration: 450,
   grid: { top: 0, right: 0, bottom: 0, left: 0 },
@@ -217,6 +237,25 @@ const CircularMetric = ({ value, label, color = '#0065CC' }: { value: number; la
         <Typography sx={{ mt: 'calc(var(--dashboard-gap) * 0.25)', color: '#6B7280', fontSize: 'var(--donut-label-font)', fontWeight: 800, letterSpacing: '0.04em' }}>{label}</Typography>
       </Box>
     </Box>
+  </Box>
+)
+
+const MemoryBarChart = ({ values, color }: { values: number[]; color: string }) => (
+  <Box sx={{ height: 'var(--memory-chart-height)', display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', gap: 'clamp(8px, 1vw, 14px)', overflow: 'hidden' }}>
+    {values.map((value, index) => (
+      <Box key={index} sx={{ flex: 1, height: '100%', display: 'flex', alignItems: 'flex-end', minWidth: 0 }}>
+        <Box
+          sx={{
+            width: '100%',
+            height: `${clampPercent(value)}%`,
+            minHeight: value > 0 ? 4 : 0,
+            borderRadius: '4px 4px 0 0',
+            bgcolor: color,
+            transition: 'height 850ms cubic-bezier(0.22, 1, 0.36, 1), background-color 220ms ease'
+          }}
+        />
+      </Box>
+    ))}
   </Box>
 )
 
@@ -291,15 +330,38 @@ function App() {
   const [loading, setLoading] = useState({ os: false, runtime: false, performance: false })
   const [error, setError] = useState<{ os: string | null; runtime: string | null; performance: string | null }>({ os: null, runtime: null, performance: null })
 
-  const handleGetOSInfo = async () => {
-    setLoading(prev => ({ ...prev, os: true }))
-    setError(prev => ({ ...prev, os: null }))
+  const applyPerformanceInfo = (info: PerformanceInfo) => {
+    const cpuValues = info.cpu.usage.map(Number).filter(Number.isFinite)
+    const cpuUsage = cpuValues.length ? cpuValues.reduce((sum, value) => sum + value, 0) / cpuValues.length : 0
+    const memoryUsage = parsePercent(info.memory.usage_percent)
+
+    setPerformanceInfo(info)
+    setHistory(prev => ({
+      cpu: appendPercentHistory(prev.cpu, cpuUsage),
+      memory: rotateMetricHistory(prev.memory, memoryUsage),
+      download: appendMetricHistory(prev.download, info.network.rx_bytes_per_sec ?? 0),
+      upload: appendMetricHistory(prev.upload, info.network.tx_bytes_per_sec ?? 0)
+    }))
+  }
+
+  const handleGetDashboardInfo = async () => {
+    setLoading({ os: true, runtime: true, performance: true })
+    setError({ os: null, runtime: null, performance: null })
+
     try {
-      setOsInfo(await invoke<OSInfo>('get_os_info'))
+      const info = await invoke<DashboardInfo>('get_dashboard_info')
+
+      setOsInfo(info.os)
+      setRuntimeInfo(info.runtime)
+      applyPerformanceInfo(info.performance)
     } catch {
-      setError(prev => ({ ...prev, os: t('errors.os') }))
+      setError({
+        os: t('errors.os'),
+        runtime: t('errors.node'),
+        performance: t('errors.performance')
+      })
     } finally {
-      setLoading(prev => ({ ...prev, os: false }))
+      setLoading({ os: false, runtime: false, performance: false })
     }
   }
 
@@ -308,19 +370,9 @@ function App() {
       setLoading(prev => ({ ...prev, performance: true }))
     }
     setError(prev => ({ ...prev, performance: null }))
-    try {
-      const info = await invoke<PerformanceInfo>('get_performance_info')
-      const cpuValues = info.cpu.usage.map(Number).filter(Number.isFinite)
-      const cpuUsage = cpuValues.length ? cpuValues.reduce((sum, value) => sum + value, 0) / cpuValues.length : 0
-      const memoryUsage = parsePercent(info.memory.usage_percent)
 
-      setPerformanceInfo(info)
-      setHistory(prev => ({
-        cpu: appendPercentHistory(prev.cpu, cpuUsage),
-        memory: appendPercentHistory(prev.memory, memoryUsage),
-        download: appendMetricHistory(prev.download, info.network.rx_bytes_per_sec ?? 0),
-        upload: appendMetricHistory(prev.upload, info.network.tx_bytes_per_sec ?? 0)
-      }))
+    try {
+      applyPerformanceInfo(await invoke<PerformanceInfo>('get_performance_info'))
     } catch {
       setError(prev => ({ ...prev, performance: t('errors.performance') }))
     } finally {
@@ -330,22 +382,8 @@ function App() {
     }
   }
 
-  const handleGetRuntimeInfo = async () => {
-    setLoading(prev => ({ ...prev, runtime: true }))
-    setError(prev => ({ ...prev, runtime: null }))
-    try {
-      setRuntimeInfo(await invoke<RuntimeInfo>('get_runtime_info'))
-    } catch {
-      setError(prev => ({ ...prev, runtime: t('errors.node') }))
-    } finally {
-      setLoading(prev => ({ ...prev, runtime: false }))
-    }
-  }
-
   useEffect(() => {
-    void handleGetOSInfo()
-    void handleGetRuntimeInfo()
-    void handleGetPerformanceInfo()
+    void handleGetDashboardInfo()
 
     const timer = window.setInterval(() => {
       void handleGetPerformanceInfo(true)
@@ -458,7 +496,7 @@ function App() {
               </Box>
               <Chip label={`${Math.round(memoryUsage)}% - ${memoryStatus}`} sx={{ mt: 'calc(var(--dashboard-gap) * 0.6)', bgcolor: memoryUsage >= 80 ? '#C45A00' : '#D1FAE5', color: memoryUsage >= 80 ? '#FFFFFF' : '#065F46', fontWeight: 900, borderRadius: 'var(--small-radius)' }} />
               <Box sx={{ height: 'var(--memory-chart-height)', mt: 'calc(var(--dashboard-gap) * 0.75)' }}>
-                <EChart option={barOption(history.memory, memoryColor)} height="var(--memory-chart-height)" />
+                <MemoryBarChart values={history.memory} color={memoryColor} />
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 'calc(var(--dashboard-gap) * 0.6)' }}>
                 <Typography sx={{ fontWeight: 800 }}><Box component="span" sx={{ display: 'inline-block', width: 'var(--legend-dot-size)', height: 'var(--legend-dot-size)', mr: 'calc(var(--control-gap) * 0.75)', borderRadius: '50%', bgcolor: memoryColor }} />{t('metrics.active')}</Typography>

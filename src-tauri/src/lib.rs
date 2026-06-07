@@ -1,14 +1,27 @@
 use serde::Serialize;
 use std::process::Command;
 use std::sync::Mutex;
-use std::time::Instant;
+use std::time::{Duration, Instant};
 use sysinfo::{Disks, Networks, System};
 use tauri::Manager;
+
+#[cfg(windows)]
+use std::os::windows::process::CommandExt;
+
+#[cfg(windows)]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+const GPU_REFRESH_INTERVAL: Duration = Duration::from_secs(6);
+const STORAGE_REFRESH_INTERVAL: Duration = Duration::from_secs(30);
 
 struct TelemetryState {
     system: System,
     networks: Networks,
     previous_network_timestamp: Option<Instant>,
+    cached_gpu: Option<GpuInfo>,
+    last_gpu_refresh: Option<Instant>,
+    cached_storage: Vec<StorageDevice>,
+    last_storage_refresh: Option<Instant>,
 }
 
 impl Default for TelemetryState {
@@ -17,6 +30,10 @@ impl Default for TelemetryState {
             system: System::new_all(),
             networks: Networks::new_with_refreshed_list(),
             previous_network_timestamp: None,
+            cached_gpu: None,
+            last_gpu_refresh: None,
+            cached_storage: Vec::new(),
+            last_storage_refresh: None,
         }
     }
 }
@@ -38,6 +55,13 @@ struct RuntimeInfo {
 }
 
 #[derive(Serialize)]
+struct DashboardInfo {
+    os: OsInfo,
+    runtime: RuntimeInfo,
+    performance: PerformanceInfo,
+}
+
+#[derive(Serialize)]
 struct CpuInfo {
     model: String,
     speed: u64,
@@ -45,7 +69,7 @@ struct CpuInfo {
     usage: Vec<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct GpuInfo {
     model: String,
     usage_percent: Option<f64>,
@@ -69,7 +93,7 @@ struct NetworkInfo {
     tx_bytes_per_sec: f64,
 }
 
-#[derive(Serialize)]
+#[derive(Clone, Serialize)]
 struct StorageDevice {
     name: String,
     total: u64,
@@ -112,7 +136,23 @@ fn get_runtime_info() -> RuntimeInfo {
 #[tauri::command]
 fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> PerformanceInfo {
     let mut telemetry = state.lock().expect("telemetry state lock poisoned");
-    telemetry.system.refresh_all();
+    collect_performance_info(&mut telemetry)
+}
+
+#[tauri::command]
+fn get_dashboard_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> DashboardInfo {
+    let mut telemetry = state.lock().expect("telemetry state lock poisoned");
+
+    DashboardInfo {
+        os: get_os_info(),
+        runtime: get_runtime_info(),
+        performance: collect_performance_info(&mut telemetry),
+    }
+}
+
+fn collect_performance_info(telemetry: &mut TelemetryState) -> PerformanceInfo {
+    telemetry.system.refresh_cpu_all();
+    telemetry.system.refresh_memory();
 
     let total_memory = telemetry.system.total_memory();
     let free_memory = telemetry.system.free_memory();
@@ -174,7 +214,7 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
             cores: cpu_cores,
             usage: cpu_usage,
         },
-        gpu: get_gpu_info(),
+        gpu: get_cached_gpu_info(telemetry, now),
         memory: MemoryInfo {
             total: total_memory,
             free: free_memory,
@@ -186,7 +226,7 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
             rx_bytes_per_sec: rx_bytes as f64 / elapsed,
             tx_bytes_per_sec: tx_bytes as f64 / elapsed,
         },
-        storage: get_storage_devices(),
+        storage: get_cached_storage_devices(telemetry, now),
         uptime: System::uptime(),
         loadavg: if cfg!(windows) {
             Vec::new()
@@ -196,8 +236,44 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
     }
 }
 
+fn should_refresh(last_refresh: Option<Instant>, now: Instant, interval: Duration) -> bool {
+    last_refresh
+        .map(|last_refresh| now.duration_since(last_refresh) >= interval)
+        .unwrap_or(true)
+}
+
+fn get_cached_gpu_info(telemetry: &mut TelemetryState, now: Instant) -> Option<GpuInfo> {
+    if should_refresh(telemetry.last_gpu_refresh, now, GPU_REFRESH_INTERVAL) {
+        if let Some(gpu) = get_gpu_info() {
+            telemetry.cached_gpu = Some(gpu);
+        }
+
+        telemetry.last_gpu_refresh = Some(now);
+    }
+
+    telemetry.cached_gpu.clone()
+}
+
+fn get_cached_storage_devices(telemetry: &mut TelemetryState, now: Instant) -> Vec<StorageDevice> {
+    if should_refresh(
+        telemetry.last_storage_refresh,
+        now,
+        STORAGE_REFRESH_INTERVAL,
+    ) {
+        let storage = get_storage_devices();
+
+        if !storage.is_empty() {
+            telemetry.cached_storage = storage;
+        }
+
+        telemetry.last_storage_refresh = Some(now);
+    }
+
+    telemetry.cached_storage.clone()
+}
+
 fn get_storage_devices() -> Vec<StorageDevice> {
-    if let Ok(output) = Command::new("df").args(["-kP"]).output() {
+    if let Ok(output) = background_command("df").args(["-kP"]).output() {
         let text = String::from_utf8_lossy(&output.stdout);
         let devices = text
             .lines()
@@ -236,7 +312,7 @@ fn get_gpu_info() -> Option<GpuInfo> {
 }
 
 fn get_nvidia_gpu_info() -> Option<GpuInfo> {
-    let output = Command::new("nvidia-smi")
+    let output = background_command("nvidia-smi")
         .args([
             "--query-gpu=name,utilization.gpu,temperature.gpu,memory.used,memory.total",
             "--format=csv,noheader,nounits",
@@ -277,7 +353,7 @@ fn get_windows_gpu_info() -> Option<GpuInfo> {
         return None;
     }
 
-    let output = Command::new("powershell")
+    let output = background_command("powershell")
         .args([
             "-NoProfile",
             "-Command",
@@ -298,6 +374,15 @@ fn get_windows_gpu_info() -> Option<GpuInfo> {
         memory_used: None,
         memory_total: None,
     })
+}
+
+fn background_command(program: &str) -> Command {
+    let mut command = Command::new(program);
+
+    #[cfg(windows)]
+    command.creation_flags(CREATE_NO_WINDOW);
+
+    command
 }
 
 fn parse_df_row(row: &str) -> Option<StorageDevice> {
@@ -343,6 +428,7 @@ pub fn run() {
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
+            get_dashboard_info,
             get_os_info,
             get_performance_info,
             get_runtime_info
