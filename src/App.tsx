@@ -292,16 +292,18 @@ const StorageDeviceRow = ({ device, index, name, isLast }: { device: StorageDevi
 )
 
 const StorageDeviceTile = ({ device, index, name }: { device: StorageDevice; index: number; name: string }) => (
-  <Box sx={{ minHeight: 0, p: 'calc(var(--card-padding) * 0.72)', borderRadius: 'var(--small-radius)', border: '1px solid #E5E7EB', bgcolor: 'rgba(255, 255, 255, 0.7)', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'var(--summary-icon-size) 1fr', alignItems: 'center', gap: 'calc(var(--dashboard-gap) * 0.7)', minWidth: 0 }}>
-      <StorageIcon index={index} />
+  <Box sx={{ minHeight: 0, height: '100%', p: 'clamp(6px, min(0.75vw, 1.05vh), 10px)', borderRadius: 'var(--small-radius)', border: '1px solid #E5E7EB', bgcolor: 'rgba(255, 255, 255, 0.7)', display: 'grid', gridTemplateRows: 'minmax(0, 1fr) var(--progress-height)', alignItems: 'center', gap: 'clamp(3px, 0.55vh, 6px)', overflow: 'hidden' }}>
+    <Box sx={{ display: 'grid', gridTemplateColumns: 'clamp(24px, min(2.35vw, 3.3vh), 34px) minmax(0, 1fr)', alignItems: 'center', gap: 'calc(var(--dashboard-gap) * 0.55)', minWidth: 0, minHeight: 0 }}>
+      <Box sx={{ color: '#0065CC', display: 'grid', placeItems: 'center', '& svg': { fontSize: 'clamp(18px, min(1.8vw, 2.52vh), 24px)' } }}>
+        {index === 0 ? <Storage /> : <Dns />}
+      </Box>
       <Box sx={{ minWidth: 0 }}>
         <Typography sx={{ fontSize: 'var(--body-font)', fontWeight: 900, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</Typography>
         <Typography sx={{ color: '#4B5563', fontSize: 'var(--interface-font)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{formatBytes(device.used)} / {formatBytes(device.total)}</Typography>
       </Box>
     </Box>
-    <Box sx={{ mt: 'calc(var(--dashboard-gap) * 0.45)' }}>
-      <EChart option={progressOption(device.usage_percent)} height="var(--progress-height)" />
+    <Box sx={{ height: 'var(--progress-height)', borderRadius: 999, bgcolor: '#E5E7EB', overflow: 'hidden', minWidth: 0 }}>
+      <Box sx={{ width: `${clampPercent(device.usage_percent)}%`, height: '100%', borderRadius: 999, bgcolor: '#0065CC', transition: 'width 450ms ease' }} />
     </Box>
   </Box>
 )
@@ -525,11 +527,11 @@ function App() {
               </Box>
             </Paper>
 
-            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 6' }, display: 'flex', flexDirection: 'column', pb: 'calc(var(--card-padding) * 1.25)' }}>
+            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 6' }, display: 'flex', flexDirection: 'column', pb: 'calc(var(--card-padding) * 0.85)' }}>
               <Typography sx={{ fontSize: 'var(--section-title-font)', fontWeight: 800, mb: 'calc(var(--dashboard-gap) * 0.75)' }}>{t('metrics.storageDevices')}</Typography>
               {storageDevices.length <= 2 && <Box sx={{ minHeight: 0 }}>{storageDevices.map((device, index) => <StorageDeviceRow key={`${device.name}-${index}`} device={device} index={index} name={device.name === 'System Disk' ? t('hardware.systemDisk') : device.name} isLast={index === storageDevices.length - 1} />)}</Box>}
               {storageDevices.length > 2 && storageDevices.length <= 4 && (
-                <Box sx={{ flex: 1, minHeight: 0, display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gridTemplateRows: { sm: 'repeat(2, minmax(0, 1fr))' }, gap: 'calc(var(--dashboard-gap) * 0.65)' }}>
+                <Box sx={{ flex: 1, minHeight: 0, overflow: 'hidden', display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, minmax(0, 1fr))' }, gridTemplateRows: { sm: 'repeat(2, minmax(0, 1fr))' }, gap: 'clamp(5px, min(0.75vw, 1.05vh), 10px)' }}>
                   {storageDevices.map((device, index) => <StorageDeviceTile key={`${device.name}-${index}`} device={device} index={index} name={device.name === 'System Disk' ? t('hardware.systemDisk') : device.name} />)}
                 </Box>
               )}
