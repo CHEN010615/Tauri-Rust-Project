@@ -47,6 +47,13 @@ type PerformanceInfo = {
     cores: number
     usage: string[]
   }
+  gpu?: {
+    model: string
+    usage_percent?: number | null
+    temperature_celsius?: number | null
+    memory_used?: number | null
+    memory_total?: number | null
+  } | null
   memory: {
     total: number
     free: number
@@ -348,11 +355,20 @@ function App() {
   }, [])
 
   const cpuUsage = useMemo(() => history.cpu.at(-1) ?? 0, [history.cpu])
+  const gpuInfo = performanceInfo?.gpu
+  const gpuUsage = clampPercent(gpuInfo?.usage_percent ?? 0)
+  const gpuMemoryUsage = gpuInfo?.memory_used && gpuInfo.memory_total
+    ? clampPercent((gpuInfo.memory_used / gpuInfo.memory_total) * 100)
+    : gpuUsage
+  const gpuTemperature = gpuInfo?.temperature_celsius ? `${gpuInfo.temperature_celsius} C` : '--'
+  const gpuMemoryText = gpuInfo?.memory_used && gpuInfo.memory_total
+    ? `${formatBytes(gpuInfo.memory_used)} / ${formatBytes(gpuInfo.memory_total)}`
+    : '--'
   const memoryUsage = parsePercent(performanceInfo?.memory.usage_percent)
   const memoryStatus = memoryUsage >= 80 ? t('metrics.highUsage') : t('metrics.healthy')
   const memoryColor = memoryUsage >= 80 ? '#C45A00' : '#0F8A55'
   const uptimeHours = performanceInfo ? (performanceInfo.uptime / 3600).toFixed(1) : '--'
-  const loadAverage = performanceInfo?.loadavg.map(value => value.toFixed(2)).join(' / ') ?? '--'
+  const loadAverage = performanceInfo?.loadavg.length ? performanceInfo.loadavg.map(value => value.toFixed(2)).join(' / ') : '--'
   const downloadRate = formatRate(performanceInfo?.network.rx_bytes_per_sec)
   const uploadRate = formatRate(performanceInfo?.network.tx_bytes_per_sec)
   const networkInterfaces = performanceInfo?.network.interfaces ?? []
@@ -411,15 +427,15 @@ function App() {
                   <Typography sx={labelSx}>{t('metrics.gpuPerformance')}</Typography>
                   <Typography sx={{ mt: 'calc(var(--dashboard-gap) * 0.3)', fontSize: 'var(--card-title-font)', fontWeight: 800 }}>{t('metrics.graphics')}</Typography>
                 </Box>
-                <Chip label="52 C" sx={{ bgcolor: '#FEE2E2', color: '#B91C1C', fontWeight: 800 }} />
+                <Chip label={gpuTemperature} sx={{ bgcolor: '#FEE2E2', color: '#B91C1C', fontWeight: 800 }} />
               </Box>
-              <CircularMetric value={15} label={t('metrics.vramUsed')} />
+              <CircularMetric value={gpuUsage} label={gpuInfo?.usage_percent != null ? (isEnglish ? 'GPU USED' : 'GPU 使用率') : t('status.notAvailable')} />
               <Box sx={{ mt: 'calc(var(--dashboard-gap) * 0.75)' }}>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 'calc(var(--dashboard-gap) * 0.6)' }}>
                   <Typography sx={labelSx}>{t('metrics.vramUsage')}</Typography>
-                  <Typography sx={{ color: '#4B5563', fontWeight: 800 }}>2.4 / 24.0 GB</Typography>
+                  <Typography sx={{ color: '#4B5563', fontWeight: 800 }}>{gpuMemoryText}</Typography>
                 </Box>
-                <EChart option={progressOption(15)} height="var(--progress-height)" />
+                <EChart option={progressOption(gpuMemoryUsage)} height="var(--progress-height)" />
               </Box>
             </Paper>
 
@@ -477,9 +493,9 @@ function App() {
             </Paper>
 
             {[
-              { icon: <Speed />, label: t('metrics.cpu'), value: performanceInfo?.cpu.model ?? 'Apple Silicon / Intel CPU' },
-              { icon: <Memory />, label: t('metrics.gpu'), value: t('hardware.gpuModel') },
-              { icon: <DeveloperBoard />, label: t('metrics.motherboard'), value: osInfo ? `${osInfo.type_name} ${osInfo.arch}` : t('hardware.motherboardModel') }
+              { icon: <Speed />, label: t('metrics.cpu'), value: performanceInfo?.cpu.model ?? t('status.notAvailable') },
+              { icon: <Memory />, label: t('metrics.gpu'), value: gpuInfo?.model ?? t('status.notAvailable') },
+              { icon: <DeveloperBoard />, label: isEnglish ? 'System' : '系统', value: osInfo ? `${osInfo.type_name} ${osInfo.arch}` : t('status.notAvailable') }
             ].map(item => (
               <Paper key={item.label} elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 4' }, display: 'flex', alignItems: 'center', gap: 'var(--dashboard-gap)' }}>
                 <Box sx={{ width: 'var(--summary-icon-size)', height: 'var(--summary-icon-size)', borderRadius: 'var(--small-radius)', bgcolor: '#E8F1FF', color: '#0065CC', display: 'grid', placeItems: 'center', flexShrink: 0, '& svg': { fontSize: 'var(--summary-icon-font)' } }}>{item.icon}</Box>
@@ -490,12 +506,12 @@ function App() {
               </Paper>
             ))}
 
-            <Paper elevation={0} sx={{ ...cardSx, py: 'calc(var(--card-padding) * 0.7)', gridColumn: '1 / -1', display: 'flex', justifyContent: 'space-between', gap: 'var(--dashboard-gap)', flexWrap: 'wrap' }}>
+            <Paper elevation={0} sx={{ ...cardSx, py: 'calc(var(--card-padding) * 0.7)', gridColumn: '1 / -1', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--dashboard-gap)', flexWrap: 'wrap' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 'var(--dashboard-gap)' }}>
                 <Computer sx={{ color: '#0065CC' }} />
-                <Typography sx={{ color: '#4B5563', fontSize: 'var(--body-font)', fontWeight: 700 }}>Rust {runtimeInfo?.rust || t('status.notAvailable')} | Tauri {runtimeInfo?.tauri || t('status.notAvailable')} | {runtimeInfo?.webview || 'WebView'}</Typography>
+                <Typography sx={{ color: '#4B5563', fontSize: 'var(--body-font)', fontWeight: 700 }}>Rust {runtimeInfo?.rust || t('status.notAvailable')} | App {runtimeInfo?.tauri || t('status.notAvailable')} | {runtimeInfo?.webview || 'WebView'}</Typography>
               </Box>
-              <Typography sx={{ color: '#4B5563', fontSize: 'var(--body-font)', fontWeight: 700 }}>{t('metrics.loadAvg')}: {loadAverage} | {t('metrics.release')}: {osInfo?.release || '--'}</Typography>
+              <Typography sx={{ color: '#4B5563', fontSize: 'var(--body-font)', fontWeight: 700, display: 'flex', alignItems: 'center', minHeight: 'var(--summary-icon-size)' }}>{t('metrics.loadAvg')}: {loadAverage} | {t('metrics.release')}: {osInfo?.release || '--'}</Typography>
             </Paper>
           </Box>
         </Box>

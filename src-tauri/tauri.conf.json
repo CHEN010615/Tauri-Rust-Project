@@ -12,6 +12,7 @@
   "app": {
     "windows": [
       {
+        "label": "main",
         "title": "PluginCore",
         "width": 1280,
         "height": 850,
@@ -19,7 +20,7 @@
         "minHeight": 850,
         "decorations": true,
         "resizable": true,
-        "visible": true
+        "visible": false
       }
     ],
     "security": {

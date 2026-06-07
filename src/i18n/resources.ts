@@ -55,9 +55,7 @@ const resources = {
         processorLoading: '正在加载处理器信息',
         driveC: 'Drive C: (SSD)',
         driveD: 'Drive D: (HDD)',
-        systemDisk: '系统磁盘',
-        gpuModel: 'NVIDIA GeForce RTX 4090',
-        motherboardModel: 'ASUS ROG Z790'
+        systemDisk: '系统磁盘'
       }
     }
   },
@@ -117,9 +115,7 @@ const resources = {
         processorLoading: 'Processor information loading',
         driveC: 'Drive C: (SSD)',
         driveD: 'Drive D: (HDD)',
-        systemDisk: 'System Disk',
-        gpuModel: 'NVIDIA GeForce RTX 4090',
-        motherboardModel: 'ASUS ROG Z790'
+        systemDisk: 'System Disk'
       }
     }
   }

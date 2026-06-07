@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import type { MouseEvent, PointerEvent } from 'react'
 import { Close, CropSquare, Remove } from '@mui/icons-material'
 import { getCurrentWindow } from '@tauri-apps/api/window'
 import styles from './TitleBar.module.scss'
@@ -35,17 +36,31 @@ const TitleBar = () => {
     return () => cleanup?.()
   }, [])
 
-  const handleMinimize = () => {
-    void appWindow.minimize()
+  const stopWindowDrag = (event: PointerEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
   }
 
-  const handleMaximizeToggle = () => {
-    void (isMaximized ? appWindow.unmaximize() : appWindow.maximize())
-    setIsMaximized(prev => !prev)
+  const handleMinimize = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    await appWindow.minimize()
   }
 
-  const handleClose = () => {
-    void appWindow.close()
+  const handleMaximizeToggle = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    const maximized = await appWindow.isMaximized()
+
+    if (maximized) {
+      await appWindow.unmaximize()
+      setIsMaximized(false)
+    } else {
+      await appWindow.maximize()
+      setIsMaximized(true)
+    }
+  }
+
+  const handleClose = async (event: MouseEvent<HTMLButtonElement>) => {
+    event.stopPropagation()
+    await appWindow.close()
   }
 
   if (isMac || isFullScreen) {
@@ -63,13 +78,13 @@ const TitleBar = () => {
       </div>
       {!isMac && (
         <div className={styles.windowControls}>
-          <button className={`${styles.ctrlBtn} ${styles.btnMinimize}`} onClick={handleMinimize} title="最小化">
+          <button type="button" className={`${styles.ctrlBtn} ${styles.btnMinimize}`} onPointerDown={stopWindowDrag} onClick={handleMinimize} title="最小化">
             <Remove sx={{ fontSize: 14 }} />
           </button>
-          <button className={`${styles.ctrlBtn} ${styles.btnMaximize}`} onClick={handleMaximizeToggle} title="最大化">
+          <button type="button" className={`${styles.ctrlBtn} ${styles.btnMaximize}`} onPointerDown={stopWindowDrag} onClick={handleMaximizeToggle} title={isMaximized ? '还原' : '最大化'}>
             <CropSquare sx={{ fontSize: 12 }} />
           </button>
-          <button className={`${styles.ctrlBtn} ${styles.btnClose}`} onClick={handleClose} title="关闭">
+          <button type="button" className={`${styles.ctrlBtn} ${styles.btnClose}`} onPointerDown={stopWindowDrag} onClick={handleClose} title="关闭">
             <Close sx={{ fontSize: 14 }} />
           </button>
         </div>

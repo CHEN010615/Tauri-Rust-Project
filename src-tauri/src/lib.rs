@@ -2,27 +2,23 @@ use serde::Serialize;
 use std::process::Command;
 use std::sync::Mutex;
 use std::time::Instant;
-use sysinfo::{Disks, System};
+use sysinfo::{Disks, Networks, System};
+use tauri::Manager;
 
 struct TelemetryState {
     system: System,
-    previous_network_sample: Option<NetworkSample>,
+    networks: Networks,
+    previous_network_timestamp: Option<Instant>,
 }
 
 impl Default for TelemetryState {
     fn default() -> Self {
         Self {
             system: System::new_all(),
-            previous_network_sample: None,
+            networks: Networks::new_with_refreshed_list(),
+            previous_network_timestamp: None,
         }
     }
-}
-
-#[derive(Clone, Copy)]
-struct NetworkSample {
-    rx_bytes: u64,
-    tx_bytes: u64,
-    timestamp: Instant,
 }
 
 #[derive(Serialize)]
@@ -47,6 +43,15 @@ struct CpuInfo {
     speed: u64,
     cores: usize,
     usage: Vec<String>,
+}
+
+#[derive(Serialize)]
+struct GpuInfo {
+    model: String,
+    usage_percent: Option<f64>,
+    temperature_celsius: Option<u64>,
+    memory_used: Option<u64>,
+    memory_total: Option<u64>,
 }
 
 #[derive(Serialize)]
@@ -76,6 +81,7 @@ struct StorageDevice {
 struct PerformanceInfo {
     hostname: String,
     cpu: CpuInfo,
+    gpu: Option<GpuInfo>,
     memory: MemoryInfo,
     network: NetworkInfo,
     storage: Vec<StorageDevice>,
@@ -130,25 +136,33 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
         .map(|cpu| format!("{:.2}", cpu.cpu_usage()))
         .collect::<Vec<_>>();
 
-    let network_sample = get_network_sample();
-    let (rx_bytes_per_sec, tx_bytes_per_sec) = {
-        let rates = match telemetry.previous_network_sample {
-            Some(previous) => {
-                let elapsed = network_sample
-                    .timestamp
-                    .duration_since(previous.timestamp)
-                    .as_secs_f64()
-                    .max(1.0);
-                (
-                    network_sample.rx_bytes.saturating_sub(previous.rx_bytes) as f64 / elapsed,
-                    network_sample.tx_bytes.saturating_sub(previous.tx_bytes) as f64 / elapsed,
-                )
-            }
-            None => (0.0, 0.0),
-        };
-        rates
-    };
-    telemetry.previous_network_sample = Some(network_sample);
+    let now = Instant::now();
+    telemetry.networks.refresh(true);
+    let elapsed = telemetry
+        .previous_network_timestamp
+        .map(|timestamp| now.duration_since(timestamp).as_secs_f64().max(1.0))
+        .unwrap_or(1.0);
+    telemetry.previous_network_timestamp = Some(now);
+
+    let rx_bytes = telemetry
+        .networks
+        .iter()
+        .map(|(_, data)| data.received())
+        .sum::<u64>();
+    let tx_bytes = telemetry
+        .networks
+        .iter()
+        .map(|(_, data)| data.transmitted())
+        .sum::<u64>();
+    let network_interfaces = telemetry
+        .networks
+        .iter()
+        .filter(|(name, data)| {
+            !name.to_ascii_lowercase().contains("loopback")
+                && (data.total_received() > 0 || data.total_transmitted() > 0)
+        })
+        .map(|(name, _)| name.to_string())
+        .collect::<Vec<_>>();
 
     let load = System::load_average();
 
@@ -160,6 +174,7 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
             cores: cpu_cores,
             usage: cpu_usage,
         },
+        gpu: get_gpu_info(),
         memory: MemoryInfo {
             total: total_memory,
             free: free_memory,
@@ -167,111 +182,18 @@ fn get_performance_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Perfo
             usage_percent: format!("{memory_percent:.2}"),
         },
         network: NetworkInfo {
-            interfaces: get_network_interfaces(),
-            rx_bytes_per_sec,
-            tx_bytes_per_sec,
+            interfaces: network_interfaces,
+            rx_bytes_per_sec: rx_bytes as f64 / elapsed,
+            tx_bytes_per_sec: tx_bytes as f64 / elapsed,
         },
         storage: get_storage_devices(),
         uptime: System::uptime(),
-        loadavg: vec![load.one, load.five, load.fifteen],
+        loadavg: if cfg!(windows) {
+            Vec::new()
+        } else {
+            vec![load.one, load.five, load.fifteen]
+        },
     }
-}
-
-fn get_network_sample() -> NetworkSample {
-    if cfg!(target_os = "macos") {
-        return get_darwin_network_sample();
-    }
-
-    if cfg!(target_os = "linux") {
-        return get_linux_network_sample();
-    }
-
-    NetworkSample {
-        rx_bytes: 0,
-        tx_bytes: 0,
-        timestamp: Instant::now(),
-    }
-}
-
-fn get_darwin_network_sample() -> NetworkSample {
-    let mut sample = NetworkSample {
-        rx_bytes: 0,
-        tx_bytes: 0,
-        timestamp: Instant::now(),
-    };
-
-    let Ok(output) = Command::new("netstat").arg("-ibn").output() else {
-        return sample;
-    };
-    let text = String::from_utf8_lossy(&output.stdout);
-
-    for row in text.lines().skip(1) {
-        let columns = row.split_whitespace().collect::<Vec<_>>();
-        let iface = columns.first().copied().unwrap_or_default();
-        let rx = columns.get(6).and_then(|value| value.parse::<u64>().ok());
-        let tx = columns.get(9).and_then(|value| value.parse::<u64>().ok());
-
-        if !iface.starts_with("lo") {
-            sample.rx_bytes = sample.rx_bytes.saturating_add(rx.unwrap_or_default());
-            sample.tx_bytes = sample.tx_bytes.saturating_add(tx.unwrap_or_default());
-        }
-    }
-
-    sample
-}
-
-fn get_linux_network_sample() -> NetworkSample {
-    let mut sample = NetworkSample {
-        rx_bytes: 0,
-        tx_bytes: 0,
-        timestamp: Instant::now(),
-    };
-
-    let Ok(text) = std::fs::read_to_string("/proc/net/dev") else {
-        return sample;
-    };
-
-    for row in text.lines().skip(2) {
-        let Some((iface, data)) = row.split_once(':') else {
-            continue;
-        };
-        let iface = iface.trim();
-        let columns = data
-            .split_whitespace()
-            .filter_map(|value| value.parse::<u64>().ok())
-            .collect::<Vec<_>>();
-
-        if !iface.starts_with("lo") {
-            sample.rx_bytes = sample.rx_bytes.saturating_add(columns.first().copied().unwrap_or_default());
-            sample.tx_bytes = sample.tx_bytes.saturating_add(columns.get(8).copied().unwrap_or_default());
-        }
-    }
-
-    sample
-}
-
-fn get_network_interfaces() -> Vec<String> {
-    if cfg!(target_os = "macos") {
-        if let Ok(output) = Command::new("ifconfig").arg("-l").output() {
-            return String::from_utf8_lossy(&output.stdout)
-                .split_whitespace()
-                .filter(|name| !name.starts_with("lo"))
-                .map(ToString::to_string)
-                .collect();
-        }
-    }
-
-    if cfg!(target_os = "linux") {
-        if let Ok(entries) = std::fs::read_dir("/sys/class/net") {
-            return entries
-                .filter_map(Result::ok)
-                .filter_map(|entry| entry.file_name().into_string().ok())
-                .filter(|name| !name.starts_with("lo"))
-                .collect();
-        }
-    }
-
-    Vec::new()
 }
 
 fn get_storage_devices() -> Vec<StorageDevice> {
@@ -309,6 +231,75 @@ fn get_storage_devices() -> Vec<StorageDevice> {
         .collect()
 }
 
+fn get_gpu_info() -> Option<GpuInfo> {
+    get_nvidia_gpu_info().or_else(get_windows_gpu_info)
+}
+
+fn get_nvidia_gpu_info() -> Option<GpuInfo> {
+    let output = Command::new("nvidia-smi")
+        .args([
+            "--query-gpu=name,utilization.gpu,temperature.gpu,memory.used,memory.total",
+            "--format=csv,noheader,nounits",
+        ])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let text = String::from_utf8_lossy(&output.stdout);
+    let columns = text
+        .lines()
+        .find(|line| !line.trim().is_empty())?
+        .split(',')
+        .map(str::trim)
+        .collect::<Vec<_>>();
+
+    let mib_to_bytes = |value: &str| {
+        value
+            .parse::<u64>()
+            .ok()
+            .map(|mib| mib.saturating_mul(1024 * 1024))
+    };
+
+    Some(GpuInfo {
+        model: columns.first()?.to_string(),
+        usage_percent: columns.get(1).and_then(|value| value.parse::<f64>().ok()),
+        temperature_celsius: columns.get(2).and_then(|value| value.parse::<u64>().ok()),
+        memory_used: columns.get(3).and_then(|value| mib_to_bytes(value)),
+        memory_total: columns.get(4).and_then(|value| mib_to_bytes(value)),
+    })
+}
+
+fn get_windows_gpu_info() -> Option<GpuInfo> {
+    if !cfg!(windows) {
+        return None;
+    }
+
+    let output = Command::new("powershell")
+        .args([
+            "-NoProfile",
+            "-Command",
+            "Get-CimInstance Win32_VideoController | Select-Object -First 1 -ExpandProperty Name",
+        ])
+        .output()
+        .ok()?;
+
+    if !output.status.success() {
+        return None;
+    }
+
+    let model = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    (!model.is_empty()).then_some(GpuInfo {
+        model,
+        usage_percent: None,
+        temperature_celsius: None,
+        memory_used: None,
+        memory_total: None,
+    })
+}
+
 fn parse_df_row(row: &str) -> Option<StorageDevice> {
     let columns = row.split_whitespace().collect::<Vec<_>>();
     if columns.len() < 6 {
@@ -343,6 +334,14 @@ fn parse_df_row(row: &str) -> Option<StorageDevice> {
 pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(TelemetryState::default()))
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                window.set_decorations(cfg!(target_os = "macos"))?;
+                window.show()?;
+            }
+
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             get_os_info,
             get_performance_info,
