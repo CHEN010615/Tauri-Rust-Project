@@ -1,0 +1,58 @@
+.appShell {
+  --page-pad-x: clamp(16px, min(2.35vw, 3.3vh), 40px);
+  --page-pad-y: clamp(10px, min(1.35vw, 1.88vh), 22px);
+  --dashboard-gap: clamp(8px, min(1.18vw, 1.65vh), 18px);
+  --card-padding: clamp(10px, min(1.18vw, 1.65vh), 20px);
+  --card-radius: clamp(12px, min(1.35vw, 1.88vh), 20px);
+  --small-radius: clamp(8px, min(1.01vw, 1.41vh), 16px);
+  --label-font: clamp(10px, min(1.01vw, 1.41vh), 14px);
+  --label-line: clamp(14px, min(1.35vw, 1.88vh), 18px);
+  --page-title-font: clamp(22px, min(2.35vw, 3.3vh), 36px);
+  --card-title-font: clamp(18px, min(1.85vw, 2.59vh), 28px);
+  --section-title-font: clamp(18px, min(1.85vw, 2.59vh), 28px);
+  --metric-font: clamp(36px, min(3.87vw, 5.41vh), 64px);
+  --metric-sub-font: clamp(18px, min(1.85vw, 2.59vh), 30px);
+  --body-font: clamp(12px, min(1.09vw, 1.53vh), 15px);
+  --interface-font: clamp(10px, min(0.92vw, 1.29vh), 13px);
+  --summary-font: clamp(15px, min(1.52vw, 2.12vh), 22px);
+  --donut-size: clamp(100px, min(10.6vw, 14.82vh), 164px);
+  --donut-inner-inset: clamp(8px, min(0.84vw, 1.18vh), 14px);
+  --donut-value-font: clamp(34px, min(3.36vw, 4.7vh), 56px);
+  --donut-label-font: clamp(10px, min(1.01vw, 1.41vh), 14px);
+  --memory-chart-height: clamp(44px, min(4.54vw, 6.35vh), 76px);
+  --sparkline-height: clamp(24px, min(2.45vw, 3.42vh), 44px);
+  --network-interface-height: clamp(34px, min(3.1vw, 4.35vh), 48px);
+  --progress-height: clamp(8px, min(0.84vw, 1.18vh), 12px);
+  --storage-ring-size: clamp(42px, min(4.35vw, 6.1vh), 66px);
+  --storage-ring-padding-y: clamp(8px, min(0.92vw, 1.29vh), 14px);
+  --storage-scroll-item-width: clamp(180px, min(16vw, 22vh), 240px);
+  --summary-icon-size: clamp(38px, min(3.7vw, 5.18vh), 58px);
+  --summary-icon-font: clamp(22px, min(2.1vw, 2.94vh), 32px);
+  --legend-dot-size: clamp(8px, min(0.84vw, 1.18vh), 12px);
+  --control-pad-x: clamp(8px, min(0.84vw, 1.18vh), 14px);
+  --control-pad-y: clamp(2px, min(0.34vw, 0.47vh), 6px);
+  --control-gap: clamp(6px, min(0.67vw, 0.94vh), 12px);
+}
+
+.mainContent {
+  min-height: 0;
+}
+
+.contentFrame {
+  height: 100%;
+  max-width: min(100%, 1500px);
+}
+
+.dashboardGrid {
+  align-content: stretch;
+}
+
+.appShell :global(.MuiChip-root) {
+  height: clamp(24px, min(2.52vw, 3.53vh), 34px);
+  border-radius: var(--small-radius);
+  font-size: var(--body-font);
+}
+
+.appShell :global(.MuiSvgIcon-root) {
+  font-size: clamp(20px, min(2.02vw, 2.82vh), 32px);
+}

@@ -1,0 +1,19 @@
+[package]
+name = "tauri_rust_project"
+version = "0.1.0"
+description = "PluginCore resource dashboard ported to Tauri"
+authors = ["CHEN"]
+edition = "2021"
+
+[lib]
+name = "tauri_rust_project_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+sysinfo = "0.33"
+tauri = { version = "2", features = [] }

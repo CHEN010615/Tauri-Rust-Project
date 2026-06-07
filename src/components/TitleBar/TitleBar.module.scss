@@ -1,0 +1,98 @@
+$titlebar-height: 36px;
+
+.titlebar {
+  position: relative;
+  flex: 0 0 $titlebar-height;
+  height: $titlebar-height;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: rgba(249, 250, 252, 0.96);
+  border-bottom: 1px solid rgba(229, 231, 235, 0.9);
+  color: #111827;
+  user-select: none;
+  backdrop-filter: blur(12px);
+}
+
+.titlebarMac {
+  justify-content: flex-start;
+}
+
+.dragRegion {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  padding-left: 16px;
+}
+
+.titlebarMac .dragRegion {
+  padding-left: 86px;
+}
+
+.titleContent {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.logoIcon {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border-radius: 5px;
+  background: #0065cc;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.appName {
+  font: 700 14px/1.2 inherit;
+  color: inherit;
+  letter-spacing: 0.02em;
+}
+
+.version {
+  font-size: 10px;
+  color: currentColor;
+  letter-spacing: 0.08em;
+  opacity: 0.45;
+}
+
+.windowControls {
+  display: flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+.ctrlBtn {
+  width: 46px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.72;
+  transition: background-color 150ms ease, color 150ms ease, opacity 150ms ease, transform 150ms ease;
+
+  &:hover {
+    background-color: rgba(17, 24, 39, 0.06);
+    opacity: 1;
+  }
+
+  &:active {
+    transform: scale(0.92);
+  }
+}
+
+.btnClose:hover {
+  background-color: #e81123;
+  color: #fff;
+}
