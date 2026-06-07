@@ -356,6 +356,7 @@ function App() {
 
   const cpuUsage = useMemo(() => history.cpu.at(-1) ?? 0, [history.cpu])
   const gpuInfo = performanceInfo?.gpu
+  const hasGpu = Boolean(gpuInfo?.model)
   const gpuUsage = clampPercent(gpuInfo?.usage_percent ?? 0)
   const gpuMemoryUsage = gpuInfo?.memory_used && gpuInfo.memory_total
     ? clampPercent((gpuInfo.memory_used / gpuInfo.memory_total) * 100)
@@ -379,6 +380,13 @@ function App() {
         { name: t('hardware.driveC'), total: 1024 ** 4, used: 450 * 1024 ** 3, usage_percent: 45 },
         { name: t('hardware.driveD'), total: 4 * 1024 ** 4, used: 2 * 1024 ** 4, usage_percent: 50 }
       ]
+  const topMetricSpan = hasGpu ? 4 : 6
+  const summaryItems = [
+    { icon: <Speed />, label: t('metrics.cpu'), value: performanceInfo?.cpu.model ?? t('status.notAvailable') },
+    ...(hasGpu ? [{ icon: <Memory />, label: t('metrics.gpu'), value: gpuInfo?.model ?? t('status.notAvailable') }] : []),
+    { icon: <DeveloperBoard />, label: isEnglish ? 'System' : '系统', value: osInfo ? `${osInfo.type_name} ${osInfo.arch}` : t('status.notAvailable') }
+  ]
+  const summarySpan = summaryItems.length === 2 ? 6 : 4
 
   return (
     <Box className={styles.appShell} sx={{ height: '100vh', overflow: 'hidden', display: 'flex', flexDirection: 'column', color: '#111827', background: 'radial-gradient(circle at 15% 0%, rgba(59, 130, 246, 0.08), transparent 28%), linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 48%, #F4F7FF 100%)' }}>
@@ -406,7 +414,7 @@ function App() {
           )}
 
           <Box className={styles.dashboardGrid} sx={{ flex: 1, minHeight: 0, height: '100%', display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(12, 1fr)' }, gridTemplateRows: { xs: 'none', md: 'minmax(0, 1.55fr) minmax(0, 1.05fr) minmax(0, 0.48fr) minmax(0, 0.36fr)' }, gap: 'var(--dashboard-gap)' }}>
-            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 4' } }}>
+            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: `span ${topMetricSpan}` } }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--dashboard-gap)' }}>
                 <Box>
                   <Typography sx={labelSx}>{t('metrics.cpuLoad')}</Typography>
@@ -421,25 +429,27 @@ function App() {
               </Box>
             </Paper>
 
-            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 4' } }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--dashboard-gap)' }}>
-                <Box>
-                  <Typography sx={labelSx}>{t('metrics.gpuPerformance')}</Typography>
-                  <Typography sx={{ mt: 'calc(var(--dashboard-gap) * 0.3)', fontSize: 'var(--card-title-font)', fontWeight: 800 }}>{t('metrics.graphics')}</Typography>
+            {hasGpu && (
+              <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: `span ${topMetricSpan}` } }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 'var(--dashboard-gap)' }}>
+                  <Box>
+                    <Typography sx={labelSx}>{t('metrics.gpuPerformance')}</Typography>
+                    <Typography sx={{ mt: 'calc(var(--dashboard-gap) * 0.3)', fontSize: 'var(--card-title-font)', fontWeight: 800 }}>{t('metrics.graphics')}</Typography>
+                  </Box>
+                  <Chip label={gpuTemperature} sx={{ bgcolor: '#FEE2E2', color: '#B91C1C', fontWeight: 800 }} />
                 </Box>
-                <Chip label={gpuTemperature} sx={{ bgcolor: '#FEE2E2', color: '#B91C1C', fontWeight: 800 }} />
-              </Box>
-              <CircularMetric value={gpuUsage} label={gpuInfo?.usage_percent != null ? (isEnglish ? 'GPU USED' : 'GPU 使用率') : t('status.notAvailable')} />
-              <Box sx={{ mt: 'calc(var(--dashboard-gap) * 0.75)' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 'calc(var(--dashboard-gap) * 0.6)' }}>
-                  <Typography sx={labelSx}>{t('metrics.vramUsage')}</Typography>
-                  <Typography sx={{ color: '#4B5563', fontWeight: 800 }}>{gpuMemoryText}</Typography>
+                <CircularMetric value={gpuUsage} label={gpuInfo?.usage_percent != null ? (isEnglish ? 'GPU USED' : 'GPU 使用率') : t('status.notAvailable')} />
+                <Box sx={{ mt: 'calc(var(--dashboard-gap) * 0.75)' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 'calc(var(--dashboard-gap) * 0.6)' }}>
+                    <Typography sx={labelSx}>{t('metrics.vramUsage')}</Typography>
+                    <Typography sx={{ color: '#4B5563', fontWeight: 800 }}>{gpuMemoryText}</Typography>
+                  </Box>
+                  <EChart option={progressOption(gpuMemoryUsage)} height="var(--progress-height)" />
                 </Box>
-                <EChart option={progressOption(gpuMemoryUsage)} height="var(--progress-height)" />
-              </Box>
-            </Paper>
+              </Paper>
+            )}
 
-            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 4' } }}>
+            <Paper elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: `span ${topMetricSpan}` } }}>
               <Typography sx={labelSx}>{t('metrics.memoryAllocation')}</Typography>
               <Typography sx={{ mt: 'calc(var(--dashboard-gap) * 0.3)', fontSize: 'var(--card-title-font)', fontWeight: 800 }}>{t('metrics.systemRam')}</Typography>
               <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 'calc(var(--dashboard-gap) * 0.65)', mt: 'calc(var(--dashboard-gap) * 0.9)', flexWrap: 'wrap' }}>
@@ -492,12 +502,8 @@ function App() {
               )}
             </Paper>
 
-            {[
-              { icon: <Speed />, label: t('metrics.cpu'), value: performanceInfo?.cpu.model ?? t('status.notAvailable') },
-              { icon: <Memory />, label: t('metrics.gpu'), value: gpuInfo?.model ?? t('status.notAvailable') },
-              { icon: <DeveloperBoard />, label: isEnglish ? 'System' : '系统', value: osInfo ? `${osInfo.type_name} ${osInfo.arch}` : t('status.notAvailable') }
-            ].map(item => (
-              <Paper key={item.label} elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: 'span 4' }, display: 'flex', alignItems: 'center', gap: 'var(--dashboard-gap)' }}>
+            {summaryItems.map(item => (
+              <Paper key={item.label} elevation={0} sx={{ ...cardSx, gridColumn: { xs: '1', md: `span ${summarySpan}` }, display: 'flex', alignItems: 'center', gap: 'var(--dashboard-gap)' }}>
                 <Box sx={{ width: 'var(--summary-icon-size)', height: 'var(--summary-icon-size)', borderRadius: 'var(--small-radius)', bgcolor: '#E8F1FF', color: '#0065CC', display: 'grid', placeItems: 'center', flexShrink: 0, '& svg': { fontSize: 'var(--summary-icon-font)' } }}>{item.icon}</Box>
                 <Box sx={{ minWidth: 0 }}>
                   <Typography sx={labelSx}>{item.label}</Typography>
