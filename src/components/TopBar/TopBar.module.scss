@@ -2,18 +2,11 @@
 
 .topbar {
   height: $topbar-height;
-  position: fixed;
-  top: var(--titlebar-offset);
-  right: 0;
-  left: $sidebar-width;
-  z-index: $z-index-topbar;
-  background-color: rgba($surface-color, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba($outline-variant, 0.1);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 $container-padding;
+  margin-bottom: $spacing-lg;
+  background-color: transparent;
 }
 
 .left {
@@ -41,6 +34,7 @@
   position: relative;
   width: 100%;
   max-width: 320px;
+  z-index: 5;
 }
 
 .searchIcon {
@@ -75,35 +69,55 @@
   }
 }
 
-.tabs {
-  display: flex;
+.suggestions {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  max-height: 280px;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid rgba($outline-variant, 0.45);
+  border-radius: $border-radius-lg;
+  background-color: rgba($surface-color, 0.98);
+  box-shadow: $shadow-lg;
+}
+
+.suggestionItem {
+  width: 100%;
+  min-height: 34px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 20px;
+  gap: $spacing-sm;
+  padding: 6px 8px;
+  border: none;
+  border-radius: $border-radius-md;
+  background: transparent;
+  color: $on-surface;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    background-color: rgba($primary-color, 0.12);
+  }
 }
 
-.tab {
-  font-family: $font-family-label;
+.suggestionNumber,
+.suggestionSlug {
+  color: rgba($primary-color, 0.7);
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  white-space: nowrap;
+}
+
+.suggestionName {
+  overflow: hidden;
+  color: #fff;
   font-size: $font-size-sm;
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  color: $on-surface-variant;
-  text-decoration: none;
-  padding-bottom: 2px;
-  transition: color $transition-fast;
-
-  &:hover {
-    color: $on-surface;
-  }
-}
-
-.tabActive {
-  color: $primary-color;
-  border-bottom: 2px solid $primary-color;
-  padding-bottom: 0;
-
-  &:hover {
-    color: $primary-color;
-  }
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .right {
@@ -126,26 +140,6 @@
 
   &:hover {
     color: $primary-color;
-  }
-}
-
-.langBtn {
-  min-width: 44px;
-  height: 32px;
-  padding: 0 10px;
-  color: $on-surface;
-  background-color: rgba($surface-container-high, 0.9);
-  border: 1px solid rgba($outline-variant, 0.8);
-  border-radius: $border-radius-full;
-  font-family: $font-family-label;
-  font-size: $font-size-xs;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all $transition-fast;
-
-  &:hover {
-    color: $primary-color;
-    border-color: rgba($primary-color, 0.65);
   }
 }
 

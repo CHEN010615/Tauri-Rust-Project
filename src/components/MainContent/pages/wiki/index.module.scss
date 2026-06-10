@@ -37,12 +37,10 @@
   margin-top: $spacing-sm;
 }
 
-.badges {
-  display: flex;
-  gap: $spacing-sm;
-}
-
 .badge {
+  display: inline-flex;
+  align-items: center;
+  height: 32px;
   padding: 2px 10px;
   background-color: $surface-container-highest;
   border-radius: $border-radius-full;
@@ -56,21 +54,126 @@
   border: 1px solid rgba($primary-color, 0.2);
 }
 
-.badgeSecondary {
+// ==================== 筛选区（WikiPage） ====================
+
+.filterToolbar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: $spacing-sm;
+  margin-bottom: $spacing-sm;
+}
+
+.filters {
+  display: grid;
+  gap: $spacing-sm;
+  margin-bottom: 24px;
+  padding: $spacing-md;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $border-radius-lg;
+  background-color: rgba($surface-container, 0.52);
+}
+
+.filterOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.filterChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: $border-radius-sm;
+  background-color: rgba($surface-variant, 0.46);
+  color: $on-surface-variant;
+  font-size: $font-size-sm;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: all $transition-fast;
+
+  &:hover {
+    border-color: rgba($primary-color, 0.36);
+    color: #fff;
+  }
+
+  &:disabled {
+    opacity: 0.38;
+    cursor: not-allowed;
+
+    &:hover {
+      border-color: rgba(255, 255, 255, 0.08);
+      color: $on-surface-variant;
+    }
+  }
+}
+
+.filterChipActive {
+  border-color: rgba($primary-color, 0.52);
+  background-color: rgba($primary-color, 0.16);
+  color: #fff;
+}
+
+.clearFilterChip {
+  color: $primary-color;
+  border-color: rgba($primary-color, 0.28);
+}
+
+.sortFilterChip {
   color: $secondary-color;
-  border: 1px solid rgba($secondary-color, 0.2);
+  border-color: rgba($secondary-color, 0.3);
+
+  &:hover {
+    border-color: rgba($secondary-color, 0.55);
+  }
+}
+
+.filterIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
 }
 
 // ==================== 卡片网格（WikiPage） ====================
 
 .grid {
+  --pal-card-min-width: 220px;
+
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(var(--pal-card-min-width), 1fr));
   gap: $spacing-md;
   padding-bottom: 40px;
 }
 
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(var(--pal-card-min-width), 1fr));
+  }
+}
+
+@media (max-width: 960px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(var(--pal-card-min-width), 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 .card {
+  width: 100%;
+  min-height: 288px;
+  padding: 0;
+  color: inherit;
+  text-align: left;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
   border-radius: 20px;
   overflow: hidden;
   cursor: pointer;
@@ -82,10 +185,26 @@
   }
 }
 
+.cardActive {
+  border-color: rgba($primary-color, 0.45);
+  box-shadow: 0 0 0 1px rgba($primary-color, 0.2), $shadow-md;
+}
+
 .cardImage {
   height: 144px;
   position: relative;
   overflow: hidden;
+}
+
+.palImage {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  object-position: right bottom;
+  filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.28));
 }
 
 .cardNumber {
@@ -107,11 +226,11 @@
 }
 
 .cardType {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   display: flex;
+  flex-wrap: wrap;
   gap: $spacing-xs;
+  align-items: center;
+  flex-shrink: 0;
 }
 
 .typeBadge {
@@ -126,8 +245,18 @@
   color: #fff;
 }
 
+.typeBadgeIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.22));
+}
+
 .cardBody {
   padding: $spacing-md;
+  min-height: 144px;
+  display: flex;
+  flex-direction: column;
 }
 
 .cardName {
@@ -143,33 +272,74 @@
   }
 }
 
+.cardDescRow {
+  display: flex;
+  align-items: center;
+  gap: $spacing-sm;
+  min-height: 40px;
+  margin-top: $spacing-xs;
+}
+
 .cardDesc {
   color: $on-surface-variant;
   font-size: $font-size-md;
-  margin-top: $spacing-xs;
   opacity: 0.8;
   line-height: 1.4;
+  margin: 0;
 }
 
 .cardFooter {
-  margin-top: $spacing-md;
+  margin-top: auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: $spacing-sm;
 }
 
 .cardTier {
   font-family: $font-family-mono;
   font-size: $font-size-xs;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0;
   color: rgba($primary-color, 0.6);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cardTags {
   display: flex;
-  gap: $spacing-sm;
+  gap: $spacing-xs;
   align-items: center;
+  flex-shrink: 0;
+}
+
+.workIconWrap {
+  min-width: 32px;
+  height: 22px;
+  padding: 0 6px 0 4px;
+  border: 1px solid rgba($secondary-color, 0.24);
+  border-radius: $border-radius-md;
+  background-color: rgba($surface-container-highest, 0.62);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+}
+
+.workIcon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.24));
+}
+
+.workIconLevel {
+  color: $secondary-color;
+  font-family: $font-family-mono;
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1;
 }
 
 .cardLocked {
@@ -216,8 +386,20 @@
 .headerImage {
   width: 100%;
   height: 100%;
-  object-fit: cover;
-  display: block;
+  position: relative;
+  overflow: hidden;
+}
+
+.drawerPalImage {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: auto;
+  height: 100%;
+  object-fit: contain;
+  object-position: right bottom;
+  filter: drop-shadow(0 22px 22px rgba(0, 0, 0, 0.34));
+  pointer-events: none;
 }
 
 .headerGradient {
@@ -236,6 +418,7 @@
   position: absolute;
   top: 16px;
   right: 16px;
+  z-index: 2;
   width: 36px;
   height: 36px;
   border-radius: $border-radius-full;
@@ -317,6 +500,94 @@
 // 抽屉内容区块通用
 .section {
   margin-bottom: $spacing-lg;
+}
+
+.sourceLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: $primary-color;
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  text-decoration: none;
+  border: 1px solid rgba($primary-color, 0.25);
+  border-radius: $border-radius-full;
+  padding: 3px 8px;
+
+  &:hover {
+    background-color: rgba($primary-color, 0.12);
+  }
+}
+
+.elementList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-sm;
+}
+
+.elementTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid;
+  border-radius: $border-radius-full;
+  background-color: rgba($surface-variant, 0.42);
+  color: #fff;
+  font-size: $font-size-sm;
+  font-weight: 600;
+}
+
+.elementTagIcon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+.workList {
+  display: grid;
+  gap: $spacing-sm;
+  margin-top: $spacing-md;
+}
+
+.workItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-md;
+  padding: 10px 12px;
+  border-radius: $border-radius-md;
+  background-color: rgba($surface-variant, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.workName {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-sm;
+  color: #fff;
+  font-size: $font-size-md;
+  font-weight: 600;
+}
+
+.workItemIcon {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.workLevel {
+  color: $secondary-color;
+  font-family: $font-family-mono;
+  font-size: $font-size-xs;
+  font-weight: 700;
+}
+
+.emptyText {
+  margin: $spacing-md 0 0;
+  color: $on-surface-variant;
+  font-size: $font-size-sm;
 }
 
 .sectionHeader {

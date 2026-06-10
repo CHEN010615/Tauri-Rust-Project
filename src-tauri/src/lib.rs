@@ -5,6 +5,8 @@ use std::time::{Duration, Instant};
 use sysinfo::{Disks, Networks, System};
 use tauri::Manager;
 
+mod pal_database;
+
 #[cfg(windows)]
 use std::os::windows::process::CommandExt;
 
@@ -148,6 +150,34 @@ fn get_dashboard_info(state: tauri::State<'_, Mutex<TelemetryState>>) -> Dashboa
         runtime: get_runtime_info(),
         performance: collect_performance_info(&mut telemetry),
     }
+}
+
+#[tauri::command]
+fn get_pal_wiki_data(
+    database: tauri::State<'_, pal_database::PalDatabase>,
+) -> Result<Vec<pal_database::PalWikiEntry>, String> {
+    database.get_pals()
+}
+
+#[tauri::command]
+fn get_pal_breeding_results(
+    database: tauri::State<'_, pal_database::PalDatabase>,
+) -> Result<Vec<pal_database::PalBreedingResult>, String> {
+    database.get_breeding_results()
+}
+
+#[tauri::command]
+fn get_pal_element_images(
+    database: tauri::State<'_, pal_database::PalDatabase>,
+) -> Result<Vec<pal_database::PalElementImage>, String> {
+    database.get_element_images()
+}
+
+#[tauri::command]
+fn get_pal_work_images(
+    database: tauri::State<'_, pal_database::PalDatabase>,
+) -> Result<Vec<pal_database::PalWorkImage>, String> {
+    database.get_work_images()
 }
 
 fn collect_performance_info(telemetry: &mut TelemetryState) -> PerformanceInfo {
@@ -420,15 +450,36 @@ pub fn run() {
     tauri::Builder::default()
         .manage(Mutex::new(TelemetryState::default()))
         .setup(|app| {
+            let pal_database = app
+                .path()
+                .app_data_dir()
+                .ok()
+                .and_then(|app_data_dir| pal_database::PalDatabase::new(&app_data_dir).ok())
+                .or_else(|| pal_database::PalDatabase::new_fallback().ok());
+
+            if let Some(pal_database) = pal_database {
+                app.manage(pal_database);
+            } else {
+                eprintln!("PAL-HUB database initialization failed");
+            }
+
             if let Some(window) = app.get_webview_window("main") {
-                window.set_decorations(cfg!(target_os = "macos"))?;
-                window.show()?;
+                if let Err(error) = window.set_decorations(cfg!(target_os = "macos")) {
+                    eprintln!("failed to set window decorations: {error}");
+                }
+                if let Err(error) = window.show() {
+                    eprintln!("failed to show main window: {error}");
+                }
             }
 
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             get_dashboard_info,
+            get_pal_breeding_results,
+            get_pal_element_images,
+            get_pal_wiki_data,
+            get_pal_work_images,
             get_os_info,
             get_performance_info,
             get_runtime_info

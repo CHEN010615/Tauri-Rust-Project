@@ -1,21 +1,28 @@
-import { Search, Notifications, Settings } from '@mui/icons-material'
+import { useState } from 'react'
+import { Search, Settings } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import styles from './TopBar.module.scss'
 
 const logoImg = '/img/common/logo.png'
 
-interface TopBarProps {
-  activeTab?: string
+export interface SearchSuggestion {
+  id: string
+  name: string
+  number: string
+  slug: string
 }
 
-const TopBar = ({ activeTab = 'wiki' }: TopBarProps) => {
-  const { i18n, t } = useTranslation()
-  const currentLanguage = i18n.resolvedLanguage === 'en' ? 'en' : 'zh'
-  const nextLanguage = currentLanguage === 'zh' ? 'en' : 'zh'
+interface TopBarProps {
+  searchValue: string
+  suggestions: SearchSuggestion[]
+  onSearchChange: (value: string) => void
+  onSuggestionSelect: (suggestion: SearchSuggestion) => void
+}
 
-  const handleLanguageToggle = () => {
-    void i18n.changeLanguage(nextLanguage)
-  }
+const TopBar = ({ searchValue, suggestions, onSearchChange, onSuggestionSelect }: TopBarProps) => {
+  const { t } = useTranslation()
+  const [focused, setFocused] = useState(false)
+  const showSuggestions = focused && searchValue.trim().length > 0 && suggestions.length > 0
 
   return (
     <header className={styles.topbar}>
@@ -29,27 +36,34 @@ const TopBar = ({ activeTab = 'wiki' }: TopBarProps) => {
             className={styles.searchInput}
             placeholder={t('topbar.searchPlaceholder')}
             type="text"
+            value={searchValue}
+            onChange={(event) => onSearchChange(event.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => window.setTimeout(() => setFocused(false), 120)}
           />
+          {showSuggestions ? (
+            <div className={styles.suggestions} role="listbox">
+              {suggestions.map((suggestion) => (
+                <button
+                  key={suggestion.id}
+                  type="button"
+                  className={styles.suggestionItem}
+                  onMouseDown={(event) => event.preventDefault()}
+                  onClick={() => {
+                    onSuggestionSelect(suggestion)
+                    setFocused(false)
+                  }}
+                >
+                  <span className={styles.suggestionNumber}>No. {suggestion.number}</span>
+                  <span className={styles.suggestionName}>{suggestion.name}</span>
+                  <span className={styles.suggestionSlug}>{suggestion.slug}</span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
-        <nav className={styles.tabs}>
-          <a
-            className={`${styles.tab} ${activeTab === 'wiki' ? styles.tabActive : ''}`}
-            href="#"
-          >
-            {t('topbar.wiki')}
-          </a>
-          <a className={styles.tab} href="#">
-            {t('topbar.changelog')}
-          </a>
-        </nav>
       </div>
       <div className={styles.right}>
-        <button className={styles.langBtn} onClick={handleLanguageToggle} title={t('language.switchLabel')}>
-          {t('language.current')}
-        </button>
-        <button className={styles.iconBtn} title={t('topbar.notifications')}>
-          <Notifications sx={{ fontSize: 22 }} />
-        </button>
         <button className={styles.iconBtn} title={t('topbar.settings')}>
           <Settings sx={{ fontSize: 22 }} />
         </button>

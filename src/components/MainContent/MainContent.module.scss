@@ -2,12 +2,13 @@
 
 .main {
   margin-left: $sidebar-width;
-  margin-top: calc(var(--titlebar-offset) + #{$topbar-height});
+  margin-top: var(--titlebar-offset);
   padding: $gutter;
-  height: calc(100vh - var(--titlebar-offset) - #{$topbar-height});
+  height: calc(100vh - var(--titlebar-offset));
   overflow-y: auto;
 }
 
 .container {
-  max-width: 1000px;
+  width: 100%;
+  max-width: none;
 }

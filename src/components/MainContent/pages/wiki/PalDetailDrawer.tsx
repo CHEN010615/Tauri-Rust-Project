@@ -1,46 +1,46 @@
-import { Close, BarChart, AccountTree, Bolt, Add, ArrowForward, Egg } from '@mui/icons-material'
+import { Close, Construction, Launch, Pets } from '@mui/icons-material'
 import { Drawer } from '@mui/material'
 import { useTranslation } from 'react-i18next'
 import styles from './index.module.scss'
+import type { PalElement, PalWikiEntry, PalWorkImage, PalWorkKey } from './palData'
 
-interface StatItem {
-  labelKey: string
-  value: string | number
-  percent: number
+interface ElementMeta {
   color: string
-}
-
-interface Skill {
-  nameKey: string
-  descKey: string
-  icon: React.ReactNode
-  bgColor: string
-}
-
-interface BreedingInfo {
-  parentAIcon: React.ReactNode
-  parentBIcon: React.ReactNode
-  childKey: string
+  backgroundColor: string
+  gradient: string
 }
 
 interface PalDetailDrawerProps {
   open: boolean
   onClose: () => void
-  data: {
-    palKey: string
-    number: string
-    type: string
-    typeColor: string
-    typeIcon: React.ReactNode
-    level: number
-    stats: StatItem[]
-    breeding: BreedingInfo
-    skills: Skill[]
-  } | null
+  data: PalWikiEntry | null
+  elementMetaMap: Record<PalElement, ElementMeta>
+  getElementBackground: (elements: PalElement[]) => string
+  elementIconMap: Partial<Record<PalElement, string>>
+  workMetaMap: Partial<Record<PalWorkKey, PalWorkImage>>
 }
 
-const PalDetailDrawer = ({ open, onClose, data }: PalDetailDrawerProps) => {
+const PalDetailDrawer = ({
+  open,
+  onClose,
+  data,
+  elementMetaMap,
+  getElementBackground,
+  elementIconMap,
+  workMetaMap,
+}: PalDetailDrawerProps) => {
   const { t } = useTranslation()
+
+  if (!data) {
+    return (
+      <Drawer
+        anchor="right"
+        open={open}
+        onClose={onClose}
+        transitionDuration={{ enter: 450, exit: 400 }}
+      />
+    )
+  }
 
   return (
     <Drawer
@@ -62,20 +62,19 @@ const PalDetailDrawer = ({ open, onClose, data }: PalDetailDrawerProps) => {
       transitionDuration={{ enter: 450, exit: 400 }}
       elevation={24}
     >
-      {!data ? null : (
-        <div className={styles.drawerInner}>
+      <div className={styles.drawerInner}>
         <div className={styles.drawerHeader}>
-          <div className={styles.headerImage}>
-            <button className={styles.closeBtn} onClick={onClose}>
+          <div className={styles.headerImage} style={{ background: getElementBackground(data.elements) }}>
+            <button className={styles.closeBtn} onClick={onClose} type="button">
               <Close sx={{ fontSize: 20 }} />
             </button>
+            <img className={styles.drawerPalImage} src={data.localImage} alt={data.name} />
             <div className={styles.headerGradient}>
-              <span className={styles.headerNumber}>NO. {data.number}</span>
-              <h2 className={styles.headerName}>
-                {t(`wiki.pals.${data.palKey}.name`)} <span className={styles.headerNameEn}>{t(`wiki.pals.${data.palKey}.nameEn`)}</span>
-              </h2>
-              <div className={styles.headerTypeBadge} style={{ backgroundColor: data.typeColor }}>
-                {data.typeIcon}
+              <div>
+                <span className={styles.headerNumber}>NO. {data.number}</span>
+                <h2 className={styles.headerName}>
+                  {data.name} <span className={styles.headerNameEn}>{data.slug}</span>
+                </h2>
               </div>
             </div>
           </div>
@@ -85,79 +84,48 @@ const PalDetailDrawer = ({ open, onClose, data }: PalDetailDrawerProps) => {
           <section className={styles.section}>
             <div className={styles.sectionHeader}>
               <h4 className={styles.sectionTitle}>
-                <BarChart sx={{ fontSize: 18 }} /> {t('wiki.baseStats')}
+                <Pets sx={{ fontSize: 18 }} /> {t('wiki.elementsTitle')}
               </h4>
-              <span className={styles.sectionLevel}>LV. {data.level}</span>
+              <a className={styles.sourceLink} href={data.href} target="_blank" rel="noreferrer">
+                <Launch sx={{ fontSize: 14 }} /> PALDB
+              </a>
             </div>
-            <div className={styles.statsList}>
-              {data.stats.map((stat, i) => (
-                <div key={i} className={styles.statItem}>
-                  <div className={styles.statLabelRow}>
-                    <span className={styles.statLabel}>{t(stat.labelKey)}</span>
-                    <span className={styles.statValue} style={{ color: stat.color }}>{stat.value}</span>
-                  </div>
-                  <div className={styles.statBar}>
-                    <div
-                      className={styles.statFill}
-                      style={{ width: `${stat.percent}%`, backgroundColor: stat.color }}
-                    >
-                      <div className={styles.scanningBar} />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </section>
+            <div className={styles.elementList}>
+              {data.elements.map((element) => {
+                const elementMeta = elementMetaMap[element]
 
-          <section className={`${styles.section} ${styles.breedingSection}`}>
-            <h4 className={styles.sectionTitleAlt}>
-              <AccountTree sx={{ fontSize: 18 }} /> {t('wiki.breedingGuide')}
-            </h4>
-            <div className={styles.breedingChain}>
-              <div className={styles.breedingSlot}>
-                <div className={styles.breedingAvatar}>
-                  {data.breeding.parentAIcon}
-                </div>
-                <span className={styles.breedingLabel}>{t('wiki.father')}</span>
-              </div>
-              <Add sx={{ fontSize: 14, color: '#87929a' }} />
-              <div className={styles.breedingSlot}>
-                <div className={styles.breedingAvatar}>
-                  {data.breeding.parentBIcon}
-                </div>
-                <span className={styles.breedingLabel}>{t('wiki.mother')}</span>
-              </div>
-              <ArrowForward sx={{ fontSize: 14, color: '#78d1ff' }} />
-              <div className={styles.breedingSlotActive}>
-                <div className={styles.breedingAvatarActive}>
-                  <Egg sx={{ fontSize: 18, color: '#78d1ff' }} />
-                </div>
-                <span className={styles.breedingLabelActive}>{t(`wiki.pals.${data.breeding.childKey}.name`)}</span>
-              </div>
+                return (
+                  <span key={element} className={styles.elementTag} style={{ borderColor: elementMeta.color }}>
+                    <img className={styles.elementTagIcon} src={elementIconMap[element] ?? ''} alt="" />
+                    {t(`wiki.elements.${element}`)}
+                  </span>
+                )
+              })}
             </div>
           </section>
 
           <section className={styles.section}>
             <h4 className={styles.sectionTitleAlt}>
-              <Bolt sx={{ fontSize: 18 }} /> {t('wiki.activeSkills')}
+              <Construction sx={{ fontSize: 18 }} /> {t('wiki.workSuitability')}
             </h4>
-            <div className={styles.skillList}>
-              {data.skills.map((skill, i) => (
-                <div key={i} className={styles.skillItem}>
-                  <div className={styles.skillIcon} style={{ backgroundColor: skill.bgColor }}>
-                    {skill.icon}
+            <div className={styles.workList}>
+              {data.works.length > 0 ? (
+                data.works.map((work, index) => (
+                  <div key={`${work}-${index}`} className={styles.workItem}>
+                    <span className={styles.workName}>
+                      <img className={styles.workItemIcon} src={workMetaMap[work]?.localIcon ?? ''} alt="" />
+                      {workMetaMap[work]?.label ?? work}
+                    </span>
+                    <span className={styles.workLevel}>LV. {data.workLevels[index] ?? 1}</span>
                   </div>
-                  <div className={styles.skillInfo}>
-                    <p className={styles.skillName}>{t(skill.nameKey)}</p>
-                    <p className={styles.skillDesc}>{t(skill.descKey)}</p>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className={styles.emptyText}>{t('wiki.noWorkSuitability')}</p>
+              )}
             </div>
           </section>
         </div>
-        </div>
-      )}
+      </div>
     </Drawer>
   )
 }
