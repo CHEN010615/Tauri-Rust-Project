@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Close, KeyboardArrowDown, KeyboardArrowUp, Psychology } from '@mui/icons-material'
+import { Close, KeyboardArrowDown, KeyboardArrowUp, Psychology, Search } from '@mui/icons-material'
 import { useTranslation } from 'react-i18next'
 import TopBar from '@/components/TopBar/TopBar'
 import styles from './index.module.scss'
@@ -85,6 +85,7 @@ const WikiPage = () => {
   const [selectedWorks, setSelectedWorks] = useState<PalWorkKey[]>([])
   const [workSortDirection, setWorkSortDirection] = useState<'desc' | 'asc'>('asc')
   const [searchValue, setSearchValue] = useState('')
+  const [searchFocused, setSearchFocused] = useState(false)
   const [pals, setPals] = useState<PalWikiEntry[]>([])
   const [palElementImages, setPalElementImages] = useState<PalElementImage[]>([])
   const [palWorkImages, setPalWorkImages] = useState<PalWorkImage[]>([])
@@ -205,78 +206,110 @@ const WikiPage = () => {
 
   return (
     <>
-      <TopBar
-        searchValue={searchValue}
-        suggestions={searchSuggestions}
-        onSearchChange={setSearchValue}
-        onSuggestionSelect={(suggestion) => setSearchValue(suggestion.name)}
-      />
       <header className={styles.header}>
         <div className={styles.headerLeft}>
           <h2 className={styles.title}>{t('wiki.title')}</h2>
           <p className={styles.desc}>{t('wiki.desc')}</p>
         </div>
+        <TopBar />
       </header>
 
-      <div className={styles.filterToolbar}>
-        <span className={`${styles.badge} ${styles.badgePrimary}`}>{sortedPals.length}/{pals.length}</span>
-        <button
-          className={`${styles.filterChip} ${styles.sortFilterChip}`}
-          type="button"
-          onClick={toggleWorkSortDirection}
-          disabled={!sortableWork}
-        >
-          {workSortDirection === 'desc' ? <KeyboardArrowDown sx={{ fontSize: 18 }} /> : <KeyboardArrowUp sx={{ fontSize: 18 }} />}
-          {workSortDirection === 'desc' ? t('wiki.filters.sortDesc') : t('wiki.filters.sortAsc')}
-        </button>
-        <button
-          className={`${styles.filterChip} ${styles.clearFilterChip}`}
-          type="button"
-          onClick={clearFilters}
-          disabled={!hasActiveFilters}
-        >
-          <Close sx={{ fontSize: 16 }} /> {t('common.clear')}
-        </button>
+      <div className={styles.stickyFilters}>
+        <div className={styles.filterToolbar}>
+          <div className={styles.searchWrap}>
+            <Search sx={{ fontSize: 20 }} className={styles.searchIcon} />
+            <input
+              className={styles.searchInput}
+              placeholder={t('topbar.searchPlaceholder')}
+              type="text"
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              onFocus={() => setSearchFocused(true)}
+              onBlur={() => window.setTimeout(() => setSearchFocused(false), 120)}
+            />
+            {searchFocused && normalizedSearch.length > 0 && searchSuggestions.length > 0 ? (
+              <div className={styles.suggestions} role="listbox">
+                {searchSuggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.id}
+                    type="button"
+                    className={styles.suggestionItem}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      setSearchValue(suggestion.name)
+                      setSearchFocused(false)
+                    }}
+                  >
+                    <span className={styles.suggestionNumber}>No. {suggestion.number}</span>
+                    <span className={styles.suggestionName}>{suggestion.name}</span>
+                    <span className={styles.suggestionSlug}>{suggestion.slug}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <div className={styles.filterControls}>
+            <span className={`${styles.badge} ${styles.badgePrimary}`}>{sortedPals.length}/{pals.length}</span>
+            <button
+              className={`${styles.filterChip} ${styles.sortFilterChip}`}
+              type="button"
+              onClick={toggleWorkSortDirection}
+              disabled={!sortableWork}
+            >
+              {workSortDirection === 'desc' ? <KeyboardArrowDown sx={{ fontSize: 18 }} /> : <KeyboardArrowUp sx={{ fontSize: 18 }} />}
+              {workSortDirection === 'desc' ? t('wiki.filters.sortDesc') : t('wiki.filters.sortAsc')}
+            </button>
+            <button
+              className={`${styles.filterChip} ${styles.clearFilterChip}`}
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
+              <Close sx={{ fontSize: 16 }} /> {t('common.clear')}
+            </button>
+          </div>
+        </div>
+
+        <section className={styles.filters}>
+          <div className={styles.filterOptions}>
+            {palWorkImages.map((work) => {
+              const active = selectedWorks.includes(work.key)
+
+              return (
+                <button
+                  key={work.key}
+                  type="button"
+                  className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                  onClick={() => toggleWork(work.key)}
+                >
+                  <img className={styles.filterIcon} src={work.localIcon} alt="" />
+                  {work.label}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className={styles.filterOptions}>
+            {palElementImages.map((element) => {
+              const active = selectedElements.includes(element.key)
+
+              return (
+                <button
+                  key={element.key}
+                  type="button"
+                  className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
+                  onClick={() => toggleElement(element.key)}
+                >
+                  <img className={styles.filterIcon} src={element.localIcon} alt="" />
+                  {t(`wiki.elements.${element.key}`)}
+                </button>
+              )
+            })}
+          </div>
+
+        </section>
       </div>
-
-      <section className={styles.filters}>
-        <div className={styles.filterOptions}>
-          {palWorkImages.map((work) => {
-            const active = selectedWorks.includes(work.key)
-
-            return (
-              <button
-                key={work.key}
-                type="button"
-                className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                onClick={() => toggleWork(work.key)}
-              >
-                <img className={styles.filterIcon} src={work.localIcon} alt="" />
-                {work.label}
-              </button>
-            )
-          })}
-        </div>
-
-        <div className={styles.filterOptions}>
-          {palElementImages.map((element) => {
-            const active = selectedElements.includes(element.key)
-
-            return (
-              <button
-                key={element.key}
-                type="button"
-                className={`${styles.filterChip} ${active ? styles.filterChipActive : ''}`}
-                onClick={() => toggleElement(element.key)}
-              >
-                <img className={styles.filterIcon} src={element.localIcon} alt="" />
-                {t(`wiki.elements.${element.key}`)}
-              </button>
-            )
-          })}
-        </div>
-
-      </section>
 
       <div className={styles.grid}>
         {sortedPals.map((pal) => {

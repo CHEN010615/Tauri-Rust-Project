@@ -1,130 +1,14 @@
 @use '@/styles/variables.scss' as *;
 
 .topbar {
-  height: $topbar-height;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-lg;
-  background-color: transparent;
-}
-
-.left {
   display: flex;
   align-items: center;
-  gap: $spacing-lg;
-  flex: 1;
-}
-
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: $border-radius-full;
-  overflow: hidden;
-  flex-shrink: 0;
-}
-
-.avatarImg {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.searchWrap {
-  position: relative;
-  width: 100%;
-  max-width: 320px;
-  z-index: 5;
-}
-
-.searchIcon {
-  position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: $outline-color;
-  font-size: 20px;
-  pointer-events: none;
-}
-
-.searchInput {
-  width: 100%;
-  background-color: $surface-container-high;
-  border: 1px solid $outline-variant;
-  border-radius: $border-radius-full;
-  padding: 6px 16px 6px 40px;
-  font-family: $font-family-label;
-  font-size: $font-size-md;
-  color: $on-surface;
-  outline: none;
-  transition: all $transition-fast;
-
-  &::placeholder {
-    color: $on-surface-variant;
-  }
-
-  &:focus {
-    border-color: $primary-color;
-    box-shadow: 0 0 0 2px rgba($primary-color, 0.3);
-  }
-}
-
-.suggestions {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  max-height: 280px;
-  overflow-y: auto;
-  padding: 6px;
-  border: 1px solid rgba($outline-variant, 0.45);
-  border-radius: $border-radius-lg;
-  background-color: rgba($surface-color, 0.98);
-  box-shadow: $shadow-lg;
-}
-
-.suggestionItem {
-  width: 100%;
-  min-height: 34px;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
-  gap: $spacing-sm;
-  padding: 6px 8px;
-  border: none;
-  border-radius: $border-radius-md;
-  background: transparent;
-  color: $on-surface;
-  text-align: left;
-  cursor: pointer;
-
-  &:hover {
-    background-color: rgba($primary-color, 0.12);
-  }
-}
-
-.suggestionNumber,
-.suggestionSlug {
-  color: rgba($primary-color, 0.7);
-  font-family: $font-family-mono;
-  font-size: $font-size-xs;
-  white-space: nowrap;
-}
-
-.suggestionName {
-  overflow: hidden;
-  color: #fff;
-  font-size: $font-size-sm;
-  font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .right {
   display: flex;
   align-items: center;
   gap: $spacing-sm;
-  margin-left: $spacing-md;
 }
 
 .iconBtn {
