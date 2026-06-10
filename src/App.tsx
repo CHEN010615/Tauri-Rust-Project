@@ -5,12 +5,18 @@ import MainContent from './components/MainContent/MainContent'
 
 function App() {
   const [activeTab, setActiveTab] = useState('wiki')
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
   return (
     <>
       <TitleBar />
-      <Sidebar activeTab={activeTab} onTabChange={setActiveTab} />
-      <MainContent activeTab={activeTab} />
+      <Sidebar
+        activeTab={activeTab}
+        collapsed={sidebarCollapsed}
+        onTabChange={setActiveTab}
+        onToggleCollapsed={() => setSidebarCollapsed((collapsed) => !collapsed)}
+      />
+      <MainContent activeTab={activeTab} sidebarCollapsed={sidebarCollapsed} />
     </>
   )
 }

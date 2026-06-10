@@ -6,6 +6,11 @@
   padding: $gutter;
   height: calc(100vh - var(--titlebar-offset));
   overflow-y: auto;
+  transition: margin-left $transition-base;
+}
+
+.mainCollapsed {
+  margin-left: 72px;
 }
 
 .container {

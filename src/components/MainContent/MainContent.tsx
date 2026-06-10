@@ -6,6 +6,7 @@ import styles from './MainContent.module.scss'
 
 interface MainContentProps {
   activeTab: string
+  sidebarCollapsed: boolean
 }
 
 const pageMap: Record<string, React.ComponentType> = {
@@ -15,11 +16,11 @@ const pageMap: Record<string, React.ComponentType> = {
   glossary: GlossaryPage,
 }
 
-const MainContent = ({ activeTab }: MainContentProps) => {
+const MainContent = ({ activeTab, sidebarCollapsed }: MainContentProps) => {
   const PageComponent = pageMap[activeTab] || WikiPage
 
   return (
-    <main className={styles.main}>
+    <main className={`${styles.main} ${sidebarCollapsed ? styles.mainCollapsed : ''}`}>
       <div className={styles.container}>
         <PageComponent />
       </div>
