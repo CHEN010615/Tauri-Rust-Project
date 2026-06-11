@@ -407,7 +407,7 @@ fn get_windows_gpu_info() -> Option<GpuInfo> {
 }
 
 fn background_command(program: &str) -> Command {
-    let command = Command::new(program);
+    let mut command = Command::new(program);
 
     #[cfg(windows)]
     command.creation_flags(CREATE_NO_WINDOW);

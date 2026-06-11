@@ -5,6 +5,7 @@ import { getCurrentWindow } from '@tauri-apps/api/window'
 import { useTranslation } from 'react-i18next'
 import styles from './TitleBar.module.scss'
 
+const logoImg = '/img/common/logo.png'
 const isMac = /mac/i.test(navigator.platform) || navigator.userAgent.toLowerCase().includes('mac os')
 
 const getAppWindow = () => {
@@ -102,7 +103,7 @@ const TitleBar = () => {
     <header className={`${styles.titlebar} ${isMac ? styles.titlebarMac : ''}`}>
       <div className={styles.dragRegion} data-tauri-drag-region>
         <div className={styles.titleContent} data-tauri-drag-region>
-          <span className={styles.logoIcon}>PH</span>
+          <img className={styles.logoIcon} src={logoImg} alt="" />
           <span className={styles.appName}>{t('app.brand')}</span>
           <span className={styles.version}>v0.0.1</span>
         </div>

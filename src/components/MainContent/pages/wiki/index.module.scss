@@ -267,18 +267,33 @@
 
 .grid {
   --pal-card-min-width: 240px;
-  --pal-card-max-width: 280px;
-  --pal-card-fluid-width: clamp(var(--pal-card-min-width), 22vw, var(--pal-card-max-width));
+  --pal-card-columns: 5;
+  --pal-card-width: max(
+    var(--pal-card-min-width),
+    calc((100% - (#{$spacing-md} * (var(--pal-card-columns) - 1))) / var(--pal-card-columns))
+  );
 
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, var(--pal-card-fluid-width)), 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--pal-card-width)), 1fr));
   gap: $spacing-md;
   padding-bottom: 40px;
 }
 
+@media (min-width: 2560px) {
+  .grid {
+    --pal-card-columns: 6;
+  }
+}
+
+@media (min-width: 2561px) {
+  .grid {
+    --pal-card-columns: 7;
+  }
+}
+
 @media (max-width: 640px) {
   .grid {
-    grid-template-columns: 1fr;
+    --pal-card-columns: 1;
   }
 }
 

@@ -42,8 +42,10 @@ $titlebar-height: 36px;
 }
 
 .logoIcon {
-  font-size: 16px;
-  line-height: 1;
+  width: 22px;
+  height: 22px;
+  object-fit: contain;
+  flex-shrink: 0;
 }
 
 .appName {
